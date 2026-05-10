@@ -8,6 +8,134 @@ Traffic fine payment platform with a Spring Boot REST API and React SPA.
 - frontend/ React SPA (Vite)
 - database/ MySQL initialization scripts
 
+## 3-Tier Architecture
+
+SmartFines follows a **3-Tier Architecture** to ensure scalability, maintainability, modularity, and clear separation of responsibilities.
+
+### Architecture Overview
+
+```text
+┌──────────────────────────────┐
+│      Presentation Layer      │
+│         React SPA            │
+│  (Dashboards & UI Layer)     │
+└──────────────┬───────────────┘
+               │ REST API Calls
+               ▼
+┌──────────────────────────────┐
+│     Business Logic Layer     │
+│      Spring Boot API         │
+│ Authentication • JWT • RBAC  │
+│ Fine Processing • Payments   │
+│ Notifications • Statistics   │
+└──────────────┬───────────────┘
+               │ JPA/Hibernate
+               ▼
+┌──────────────────────────────┐
+│         Data Layer           │
+│           MySQL              │
+│ Relational Database Schema   │
+│ Users • Fines • Payments     │
+│ Licenses • Notifications     │
+└──────────────────────────────┘
+```
+
+### 1. Presentation Layer (Frontend)
+
+Implemented using:
+- React
+- Vite
+- React Router
+- Axios
+
+Responsibilities:
+- User interfaces
+- SPA navigation
+- Dashboard rendering
+- Form handling
+- API communication
+- JWT token handling
+- Role-based route protection
+
+Dashboards:
+- Admin Dashboard
+- Traffic Officer Dashboard
+- Driver Dashboard
+
+---
+
+### 2. Business Logic Layer (Backend)
+
+Implemented using:
+- Spring Boot
+- Spring Security
+- JWT Authentication
+- Spring Data JPA
+- Hibernate
+
+Responsibilities:
+- REST API endpoints
+- Authentication & Authorization
+- Business rules
+- Fine issuance
+- Star deduction logic
+- License cancellation logic
+- Payment processing
+- Notification handling
+- Regional statistics generation
+
+Layered backend structure:
+
+```text
+backend/src/main/java/com/smartfines
+
+├── controller
+├── service
+├── repository
+├── entity
+├── dto
+├── mapper
+├── security
+├── exception
+└── config
+```
+
+Request flow:
+
+```text
+React Frontend
+      ↓
+Controller Layer
+      ↓
+Service Layer
+      ↓
+Repository Layer
+      ↓
+MySQL Database
+```
+
+---
+
+### 3. Data Layer (Database)
+
+ERD:- <a href="https://dbdiagram.io/d/6a00a4167a923b94726d2767">Link</a>
+
+Implemented using:
+- MySQL 8
+- Relational schema
+- Foreign key constraints
+- Normalized database design
+
+Core modules:
+- Users & Roles
+- License Management
+- Traffic Fine Management
+- Payments & Receipts
+- Notifications
+- Regional Statistics
+
+The database schema is designed using DBML and mapped to Spring Boot JPA entities.
+
 ## Prerequisites
 
 - Java 17

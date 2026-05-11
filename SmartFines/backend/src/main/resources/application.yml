@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://104.248.73.1:3306/smartfines?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/smartfines?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: admin
-    password: "b0e5fffb56bfc845e77bf53d69f567dd313b78b92c36f144"
+    password: "password"
   jpa:
     hibernate:
       ddl-auto: update

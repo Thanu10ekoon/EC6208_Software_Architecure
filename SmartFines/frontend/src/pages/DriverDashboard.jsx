@@ -48,12 +48,18 @@ const DriverDashboard = () => {
     const receiptsUploaded = payments.filter(
       (payment) => payment?.paymentMethod === 'RECEIPT_UPLOAD'
     ).length
+    const acceptedPayments = payments.filter((payment) => payment?.paymentStatus === 'PAID').length
+    const awaitingApproval = payments.filter(
+      (payment) => payment?.paymentMethod === 'RECEIPT_UPLOAD' && payment?.receiptId && !payment?.receiptVerifiedAt
+    ).length
 
     const starsLeft = Math.max(0, 5 - activeFines.length)
 
     return {
       dueThisMonth,
       receiptsUploaded,
+      acceptedPayments,
+      awaitingApproval,
       starsLeft,
     }
   }, [fines, payments])
@@ -66,7 +72,8 @@ const DriverDashboard = () => {
       <div className="stat-grid">
         <StatCard label="Active fines" value={stats.dueThisMonth} helper="Due this month" />
         <StatCard label="Stars left" value={stats.starsLeft} helper="Safe driving" />
-        <StatCard label="Receipts" value={stats.receiptsUploaded} helper="Uploaded" />
+        <StatCard label="Accepted" value={stats.acceptedPayments} helper="Paid fines" />
+        <StatCard label="Receipts" value={stats.receiptsUploaded} helper={`${stats.awaitingApproval} awaiting admin`} />
       </div>
     </div>
   )

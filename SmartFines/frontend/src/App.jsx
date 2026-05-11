@@ -16,6 +16,7 @@ import DriverNotifications from './pages/DriverNotifications'
 import OfficerFines from './pages/OfficerFines'
 import AdminOfficers from './pages/AdminOfficers'
 import AdminStats from './pages/AdminStats'
+import AdminPayments from './pages/AdminPayments'
 import NotFound from './pages/NotFound'
 
 const RoleHome = () => {
@@ -91,6 +92,16 @@ function App() {
           <RoleRoute roles={['admin']}>
             <AppShell>
               <AdminOfficers />
+            </AppShell>
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/admin/payments"
+        element={
+          <RoleRoute roles={['admin']}>
+            <AppShell>
+              <AdminPayments />
             </AppShell>
           </RoleRoute>
         }

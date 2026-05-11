@@ -1,2 +1,4 @@
 # IDE
 .idea/
+SmartFines/backend/src/main/resources/application.yml
+SmartFines/backend/storage/

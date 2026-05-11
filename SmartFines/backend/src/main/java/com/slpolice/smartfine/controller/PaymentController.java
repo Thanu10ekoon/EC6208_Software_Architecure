@@ -7,6 +7,12 @@ import com.slpolice.smartfine.security.AuthUserDetails;
 import com.slpolice.smartfine.service.PaymentService;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,5 +52,33 @@ public class PaymentController {
   @PreAuthorize("hasRole('DRIVER')")
   public List<PaymentResponse> listPayments(@AuthenticationPrincipal AuthUserDetails user) {
     return paymentService.listPayments(user.getUserId());
+  }
+
+  @GetMapping("/{paymentId}/receipt/file")
+  @PreAuthorize("hasRole('DRIVER') or hasRole('ADMIN')")
+  public ResponseEntity<Resource> viewReceipt(@AuthenticationPrincipal AuthUserDetails user,
+      @PathVariable Long paymentId) {
+    boolean admin = user.getRoles().contains("admin");
+    PaymentService.ReceiptFile receiptFile = paymentService.getReceiptFile(paymentId, user.getUserId(), admin);
+    MediaType mediaType = resolveMediaType(receiptFile.mimeType());
+
+    return ResponseEntity.ok()
+        .contentType(mediaType)
+        .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()
+            .filename(receiptFile.fileName())
+            .build()
+            .toString())
+        .body(receiptFile.resource());
+  }
+
+  private MediaType resolveMediaType(String mimeType) {
+    if (mimeType == null || mimeType.isBlank()) {
+      return MediaType.APPLICATION_OCTET_STREAM;
+    }
+    try {
+      return MediaType.parseMediaType(mimeType);
+    } catch (InvalidMediaTypeException ex) {
+      return MediaType.APPLICATION_OCTET_STREAM;
+    }
   }
 }

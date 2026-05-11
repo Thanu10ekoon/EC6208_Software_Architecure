@@ -7,5 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
   List<Payment> findByDriverId(Long driverId);
+  List<Payment> findAllByOrderByCreatedAtDesc();
   Optional<Payment> findByFineId(Long fineId);
 }

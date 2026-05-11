@@ -25,6 +25,7 @@ const AppShell = ({ children }) => {
           {isAdmin && (
             <>
               <NavLink to="/admin/officers">Officers</NavLink>
+              <NavLink to="/admin/payments">Payments</NavLink>
               <NavLink to="/admin/stats">Statistics</NavLink>
             </>
           )}

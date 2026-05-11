@@ -6,6 +6,7 @@ import com.slpolice.smartfine.dto.ReceiptUploadResponse;
 import com.slpolice.smartfine.entity.FineStatus;
 import com.slpolice.smartfine.entity.FineStatusHistory;
 import com.slpolice.smartfine.entity.Payment;
+import com.slpolice.smartfine.entity.PaymentMethod;
 import com.slpolice.smartfine.entity.PaymentReceipt;
 import com.slpolice.smartfine.entity.PaymentStatus;
 import com.slpolice.smartfine.entity.ReceiptSource;
@@ -17,9 +18,14 @@ import com.slpolice.smartfine.repository.PaymentReceiptRepository;
 import com.slpolice.smartfine.repository.PaymentRepository;
 import com.slpolice.smartfine.repository.TrafficFineRepository;
 import com.slpolice.smartfine.repository.UserRepository;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.core.io.PathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -133,8 +139,75 @@ public class PaymentService {
   @Transactional(readOnly = true)
   public List<PaymentResponse> listPayments(Long driverUserId) {
     return paymentRepository.findByDriverId(driverUserId).stream()
+        .sorted(Comparator.comparing(Payment::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
         .map(this::toResponse)
         .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<PaymentResponse> listAllPayments() {
+    return paymentRepository.findAllByOrderByCreatedAtDesc().stream()
+        .map(this::toResponse)
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public ReceiptFile getReceiptFile(Long paymentId, Long userId, boolean admin) {
+    Payment payment = paymentRepository.findById(paymentId)
+        .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Payment not found"));
+
+    if (!admin && !payment.getDriver().getId().equals(userId)) {
+      throw new ApiException(HttpStatus.FORBIDDEN, "Not allowed to view receipt");
+    }
+
+    PaymentReceipt receipt = paymentReceiptRepository.findByPaymentId(paymentId)
+        .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Receipt not found"));
+    Path path = Path.of(receipt.getFileUrl()).toAbsolutePath().normalize();
+    if (!Files.exists(path) || !Files.isRegularFile(path)) {
+      throw new ApiException(HttpStatus.NOT_FOUND, "Receipt file not found");
+    }
+
+    return new ReceiptFile(new PathResource(path), receipt.getFileName(), receipt.getMimeType());
+  }
+
+  @Transactional
+  public PaymentResponse acceptReceiptPayment(Long paymentId, Long adminUserId) {
+    Payment payment = paymentRepository.findById(paymentId)
+        .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Payment not found"));
+
+    if (payment.getPaymentMethod() != PaymentMethod.RECEIPT_UPLOAD) {
+      throw new ApiException(HttpStatus.BAD_REQUEST, "Only receipt upload payments can be accepted");
+    }
+
+    PaymentReceipt receipt = paymentReceiptRepository.findByPaymentId(paymentId)
+        .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT, "Receipt must be uploaded before accepting payment"));
+
+    User admin = userRepository.findById(adminUserId)
+        .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Admin not found"));
+
+    boolean wasPaid = payment.getPaymentStatus() == PaymentStatus.PAID;
+    Instant acceptedAt = Instant.now();
+    if (receipt.getVerifiedAt() == null) {
+      receipt.setVerifiedByUser(admin);
+      receipt.setVerifiedAt(acceptedAt);
+    }
+
+    if (!wasPaid) {
+      payment.setPaymentStatus(PaymentStatus.PAID);
+      payment.setPaidAt(acceptedAt);
+    }
+
+    if (payment.getFine().getStatus() != FineStatus.PAID) {
+      markFinePaid(payment.getFine(), admin);
+    }
+
+    paymentReceiptRepository.save(receipt);
+    Payment saved = paymentRepository.save(payment);
+    if (!wasPaid) {
+      notificationService.notifyPaymentReceived(payment.getFine().getOfficer(), payment.getDriver(), payment.getFine(), saved);
+    }
+
+    return toResponse(saved);
   }
 
   private void markFinePaid(TrafficFine fine, User actor) {
@@ -156,16 +229,32 @@ public class PaymentService {
   }
 
   private PaymentResponse toResponse(Payment payment) {
-    return PaymentResponse.builder()
+    PaymentResponse.PaymentResponseBuilder builder = PaymentResponse.builder()
         .id(payment.getId())
         .fineId(payment.getFine().getId())
+        .fineStatus(payment.getFine().getStatus())
         .driverUserId(payment.getDriver().getId())
         .amount(payment.getAmount())
         .paymentMethod(payment.getPaymentMethod())
         .paymentStatus(payment.getPaymentStatus())
         .transactionReference(payment.getTransactionReference())
         .paidAt(payment.getPaidAt())
-        .createdAt(payment.getCreatedAt())
-        .build();
+        .createdAt(payment.getCreatedAt());
+
+    paymentReceiptRepository.findByPaymentId(payment.getId()).ifPresent(receipt -> builder
+        .receiptId(receipt.getId())
+        .receiptNumber(receipt.getReceiptNumber())
+        .receiptSource(receipt.getSource())
+        .receiptFileName(receipt.getFileName())
+        .receiptMimeType(receipt.getMimeType())
+        .receiptFileSizeBytes(receipt.getFileSizeBytes())
+        .receiptFileUrl("/payments/" + payment.getId() + "/receipt/file")
+        .receiptUploadedAt(receipt.getCreatedAt())
+        .receiptVerifiedByUserId(receipt.getVerifiedByUser() != null ? receipt.getVerifiedByUser().getId() : null)
+        .receiptVerifiedAt(receipt.getVerifiedAt()));
+
+    return builder.build();
   }
+
+  public record ReceiptFile(Resource resource, String fileName, String mimeType) {}
 }

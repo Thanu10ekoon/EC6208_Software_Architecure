@@ -1,57 +1,77 @@
 import { useEffect, useState } from 'react'
 import SectionHeader from '../components/SectionHeader'
+import { listDriverFines } from '../api/fines'
 import { createPayment, listPayments, uploadReceipt } from '../api/payments'
 import { formatCurrency, formatDate } from '../utils/formatters'
 
 const initialForm = {
   fineId: '',
-  paymentMethod: 'ONLINE',
+  paymentMethod: 'RECEIPT_UPLOAD',
   transactionReference: '',
 }
 
 const DriverPayments = () => {
   const [form, setForm] = useState(initialForm)
+  const [receiptFile, setReceiptFile] = useState(null)
+  const [fines, setFines] = useState([])
   const [payments, setPayments] = useState([])
   const [fileMap, setFileMap] = useState({})
+  const [fileInputKey, setFileInputKey] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  const loadPayments = async () => {
+  const loadData = async () => {
     setLoading(true)
     setError('')
     try {
-      const data = await listPayments()
-      setPayments(data)
+      const [finesData, paymentsData] = await Promise.all([listDriverFines(), listPayments()])
+      setFines(Array.isArray(finesData) ? finesData : [])
+      setPayments(Array.isArray(paymentsData) ? paymentsData : [])
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to load payments')
+      setError(err?.response?.data?.message || 'Failed to load payment data')
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    loadPayments()
+    const timer = setTimeout(loadData, 0)
+    return () => clearTimeout(timer)
   }, [])
 
   const handleChange = (event) => {
     setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }))
   }
 
+  const paymentFineIds = new Set(payments.map((payment) => payment.fineId))
+  const payableFines = fines.filter((fine) => fine.status !== 'PAID' && !paymentFineIds.has(fine.id))
+  const fineById = new Map(fines.map((fine) => [fine.id, fine]))
+
   const handleSubmit = async (event) => {
     event.preventDefault()
+    if (form.paymentMethod === 'RECEIPT_UPLOAD' && !receiptFile) {
+      setError('Please select the payment receipt file')
+      return
+    }
+
     setSaving(true)
     setError('')
     try {
-      await createPayment({
+      const payment = await createPayment({
         fineId: Number(form.fineId),
         paymentMethod: form.paymentMethod,
         transactionReference: form.transactionReference || null,
       })
+      if (form.paymentMethod === 'RECEIPT_UPLOAD') {
+        await uploadReceipt(payment.id, receiptFile)
+      }
       setForm(initialForm)
-      loadPayments()
+      setReceiptFile(null)
+      setFileInputKey((prev) => prev + 1)
+      loadData()
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to create payment')
+      setError(err?.response?.data?.message || 'Failed to save payment')
     } finally {
       setSaving(false)
     }
@@ -72,7 +92,7 @@ const DriverPayments = () => {
     try {
       await uploadReceipt(paymentId, file)
       setFileMap((prev) => ({ ...prev, [paymentId]: null }))
-      loadPayments()
+      loadData()
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to upload receipt')
     } finally {
@@ -87,8 +107,15 @@ const DriverPayments = () => {
         <h3>Create payment</h3>
         <form className="form grid" onSubmit={handleSubmit}>
           <label>
-            Fine ID
-            <input name="fineId" value={form.fineId} onChange={handleChange} required />
+            Fine
+            <select name="fineId" value={form.fineId} onChange={handleChange} required disabled={loading}>
+              <option value="">Select unpaid fine</option>
+              {payableFines.map((fine) => (
+                <option value={fine.id} key={fine.id}>
+                  {fine.fineReferenceNumber} - {formatCurrency(fine.fineAmount)}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
             Payment method
@@ -101,9 +128,22 @@ const DriverPayments = () => {
             Transaction reference
             <input name="transactionReference" value={form.transactionReference} onChange={handleChange} />
           </label>
+          {form.paymentMethod === 'RECEIPT_UPLOAD' && (
+            <label>
+              Receipt file
+              <input
+                key={fileInputKey}
+                type="file"
+                accept="image/*,.pdf"
+                onChange={(event) => setReceiptFile(event.target.files[0] || null)}
+                required
+              />
+            </label>
+          )}
           <button type="submit" disabled={saving}>Create payment</button>
         </form>
         {error && <p className="form-error">{error}</p>}
+        {!loading && payableFines.length === 0 && <p className="muted">No unpaid fines are available for a new payment.</p>}
       </div>
 
       <div className="panel">
@@ -112,36 +152,54 @@ const DriverPayments = () => {
         {!loading && payments.length === 0 && <p>No payments yet.</p>}
         {!loading && payments.length > 0 && (
           <div className="table">
-            <div className="table-row header cols-6">
+            <div className="table-row header cols-7">
               <span>Payment ID</span>
-              <span>Fine ID</span>
+              <span>Fine</span>
               <span>Amount</span>
               <span>Method</span>
               <span>Status</span>
               <span>Receipt</span>
+              <span>Created</span>
             </div>
-            {payments.map((payment) => (
-              <div className="table-row cols-6" key={payment.id}>
-                <span>{payment.id}</span>
-                <span>{payment.fineId}</span>
-                <span>{formatCurrency(payment.amount)}</span>
-                <span>{payment.paymentMethod}</span>
-                <span className={`status ${payment.paymentStatus === 'PAID' ? 'success' : 'pending'}`}>
-                  {payment.paymentStatus}
-                </span>
-                <span>
-                  <div className="receipt-upload">
-                    <input
-                      type="file"
-                      onChange={(event) => handleFileChange(payment.id, event.target.files[0])}
-                    />
-                    <button type="button" className="ghost" onClick={() => handleUpload(payment.id)} disabled={saving}>
-                      Upload
-                    </button>
-                  </div>
-                </span>
-              </div>
-            ))}
+            {payments.map((payment) => {
+              const fine = fineById.get(payment.fineId)
+              return (
+                <div className="table-row cols-7" key={payment.id}>
+                  <span>{payment.id}</span>
+                  <span>{fine?.fineReferenceNumber || payment.fineId}</span>
+                  <span>{formatCurrency(payment.amount)}</span>
+                  <span>{payment.paymentMethod}</span>
+                  <span className={`status ${payment.paymentStatus === 'PAID' ? 'success' : 'pending'}`}>
+                    {payment.paymentStatus}
+                  </span>
+                  <span>
+                    {payment.receiptId ? (
+                      <span>
+                        {payment.receiptFileName || payment.receiptNumber || 'Uploaded'}
+                        <br />
+                        <span className={payment.receiptVerifiedAt ? 'status success' : 'status pending'}>
+                          {payment.receiptVerifiedAt ? 'Accepted' : 'Awaiting admin'}
+                        </span>
+                      </span>
+                    ) : payment.paymentMethod === 'RECEIPT_UPLOAD' ? (
+                      <div className="receipt-upload">
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={(event) => handleFileChange(payment.id, event.target.files[0])}
+                        />
+                        <button type="button" className="ghost" onClick={() => handleUpload(payment.id)} disabled={saving}>
+                          Upload
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="muted">Not required</span>
+                    )}
+                  </span>
+                  <span>{formatDate(payment.createdAt)}</span>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>

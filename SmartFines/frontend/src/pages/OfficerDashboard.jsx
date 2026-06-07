@@ -26,23 +26,14 @@ const OfficerDashboard = () => {
   }, [])
 
   const stats = useMemo(() => {
-    const now = new Date()
-    const currentMonth = now.getMonth()
-    const currentYear = now.getFullYear()
+    const statusOf = (fine) => String(fine?.status || '').toUpperCase()
 
-    const issuedThisMonth = fines.filter((fine) => {
-      if (!fine?.issuedAt) {
-        return false
-      }
-      const issuedAt = new Date(fine.issuedAt)
-      return issuedAt.getMonth() === currentMonth && issuedAt.getFullYear() === currentYear
-    }).length
-
-    const paidCount = fines.filter((fine) => fine?.status === 'PAID').length
-    const disputedCount = fines.filter((fine) => fine?.status === 'DISPUTED').length
+    const totalFines = fines.length
+    const paidCount = fines.filter((fine) => statusOf(fine) === 'PAID').length
+    const disputedCount = fines.filter((fine) => statusOf(fine) === 'DISPUTED').length
 
     return {
-      issuedThisMonth,
+      totalFines,
       paidCount,
       disputedCount,
     }
@@ -54,7 +45,7 @@ const OfficerDashboard = () => {
       {loading && <p>Loading stats...</p>}
       {error && <p className="form-error">{error}</p>}
       <div className="stat-grid">
-        <StatCard label="Fines issued" value={stats.issuedThisMonth} helper="This month" />
+        <StatCard label="Fines issued" value={stats.totalFines} helper="Loaded total" />
         <StatCard label="Paid" value={stats.paidCount} helper="Settled" />
         <StatCard label="Disputed" value={stats.disputedCount} helper="Under review" />
       </div>

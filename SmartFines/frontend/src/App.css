@@ -207,6 +207,10 @@
   grid-template-columns: 0.75fr 0.75fr 0.75fr 0.95fr 1fr 0.85fr 1.35fr 1fr 0.9fr;
 }
 
+.table-row.cols-10 {
+  grid-template-columns: 0.65fr 0.65fr 0.65fr 1.1fr 0.9fr 1.05fr 0.85fr 1.45fr 1.3fr 0.9fr;
+}
+
 .table-row.header {
   font-size: 12px;
   text-transform: uppercase;
@@ -230,6 +234,22 @@
 .status.success {
   background: rgba(63, 143, 127, 0.15);
   color: var(--mint);
+}
+
+.status.failed {
+  background: rgba(185, 56, 42, 0.12);
+  color: #b9382a;
+}
+
+.approval-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.danger-button {
+  background: #b9382a;
 }
 
 .chip-row {
@@ -280,6 +300,36 @@
   max-width: 160px;
 }
 
+.payment-card-form {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1.4fr 1.4fr 0.7fr 0.7fr;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fffaf6;
+}
+
+.stripe-checkout-summary {
+  grid-template-columns: 1fr;
+}
+
+.payment-summary {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.payment-summary strong {
+  color: var(--text);
+  font-size: 18px;
+}
+
 .auth-page {
   min-height: 100vh;
   display: grid;
@@ -326,6 +376,16 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.form-actions button {
+  min-width: 180px;
+}
+
 label {
   display: grid;
   gap: 8px;
@@ -359,6 +419,11 @@ button:disabled {
 
 .form-error {
   color: #b9382a;
+  font-size: 13px;
+}
+
+.form-success {
+  color: var(--mint);
   font-size: 13px;
 }
 
@@ -401,5 +466,9 @@ button.link-button {
   .sidebar {
     position: static;
     height: auto;
+  }
+
+  .payment-card-form {
+    grid-template-columns: 1fr;
   }
 }

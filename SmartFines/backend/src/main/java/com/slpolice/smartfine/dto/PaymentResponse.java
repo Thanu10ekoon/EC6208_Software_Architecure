@@ -16,6 +16,8 @@ public class PaymentResponse {
   private Long fineId;
   private FineStatus fineStatus;
   private Long driverUserId;
+  private String driverName;
+  private String driverNic;
   private BigDecimal amount;
   private PaymentMethod paymentMethod;
   private PaymentStatus paymentStatus;

@@ -1,7 +1,12 @@
 server:
-  port: 8150
+  port: 8151
 
 spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:backend/.env[.properties]
+      - optional:file:../.env[.properties]
   datasource:
     url: jdbc:mysql://104.248.73.1:3306/smartfines?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: admin
@@ -34,8 +39,13 @@ app:
       - http://localhost:5173
   receipts:
     storage-path: ./storage/receipts
+  stripe:
+    secret-key: ${STRIPE_SECRET_KEY:}
+    currency: lkr
+    success-url: ${STRIPE_SUCCESS_URL:http://localhost:5173/driver/payments?session_id=CHECKOUT_SESSION_ID}
+    cancel-url: ${STRIPE_CANCEL_URL:http://localhost:5173/driver/payments}
 
 logging:
   level:
-    org.hibernate.SQL: debug
-    org.hibernate.orm.jdbc.bind: trace
+    org.hibernate.SQL: warn
+    org.hibernate.orm.jdbc.bind: warn

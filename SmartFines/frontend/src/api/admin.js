@@ -25,6 +25,11 @@ export const acceptPaymentReceipt = async (paymentId) => {
   return data
 }
 
+export const rejectPaymentReceipt = async (paymentId) => {
+  const { data } = await client.patch(`/admin/payments/${paymentId}/reject`)
+  return data
+}
+
 export const getReceiptFile = async (paymentId) => {
   const response = await client.get(`/payments/${paymentId}/receipt/file`, {
     responseType: 'blob',

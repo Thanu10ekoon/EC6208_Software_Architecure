@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import SectionHeader from '../components/SectionHeader'
-import { acceptPaymentReceipt, getReceiptFile, listAdminPayments } from '../api/admin'
+import { acceptPaymentReceipt, getReceiptFile, listAdminPayments, rejectPaymentReceipt } from '../api/admin'
 import { formatCurrency, formatDate } from '../utils/formatters'
 
 const AdminPayments = () => {
@@ -8,6 +8,7 @@ const AdminPayments = () => {
   const [loading, setLoading] = useState(true)
   const [openingId, setOpeningId] = useState(null)
   const [acceptingId, setAcceptingId] = useState(null)
+  const [rejectingId, setRejectingId] = useState(null)
   const [error, setError] = useState('')
 
   const loadPayments = async () => {
@@ -59,6 +60,42 @@ const AdminPayments = () => {
     }
   }
 
+  const handleRejectPayment = async (payment) => {
+    setRejectingId(payment.id)
+    setError('')
+    try {
+      await rejectPaymentReceipt(payment.id)
+      await loadPayments()
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to reject payment')
+    } finally {
+      setRejectingId(null)
+    }
+  }
+
+  const statusClass = (status) => {
+    if (status === 'PAID') {
+      return 'success'
+    }
+    if (status === 'FAILED' || status === 'REVERSED') {
+      return 'failed'
+    }
+    return 'pending'
+  }
+
+  const canReviewPayment = (payment) => (
+    payment.paymentMethod === 'RECEIPT_UPLOAD'
+    && payment.paymentStatus === 'PENDING'
+    && (payment.receiptId || payment.transactionReference)
+  )
+
+  const driverLabel = (payment) => {
+    if (payment.driverName && payment.driverNic) {
+      return `${payment.driverName} (${payment.driverNic})`
+    }
+    return payment.driverName || payment.driverNic || payment.driverUserId
+  }
+
   return (
     <div className="page">
       <SectionHeader title="Payments" subtitle="Review submitted payments and uploaded receipts." />
@@ -69,10 +106,11 @@ const AdminPayments = () => {
         {!loading && payments.length === 0 && <p>No payments yet.</p>}
         {!loading && payments.length > 0 && (
           <div className="table">
-            <div className="table-row header cols-9">
+            <div className="table-row header cols-10">
               <span>Payment ID</span>
               <span>Fine ID</span>
               <span>Driver</span>
+              <span>Payment Ref</span>
               <span>Amount</span>
               <span>Method</span>
               <span>Status</span>
@@ -81,13 +119,14 @@ const AdminPayments = () => {
               <span>Created</span>
             </div>
             {payments.map((payment) => (
-              <div className="table-row cols-9" key={payment.id}>
+              <div className="table-row cols-10" key={payment.id}>
                 <span>{payment.id}</span>
                 <span>{payment.fineId}</span>
-                <span>{payment.driverUserId}</span>
+                <span>{driverLabel(payment)}</span>
+                <span>{payment.transactionReference || payment.receiptNumber || <span className="muted">Not provided</span>}</span>
                 <span>{formatCurrency(payment.amount)}</span>
                 <span>{payment.paymentMethod}</span>
-                <span className={`status ${payment.paymentStatus === 'PAID' ? 'success' : 'pending'}`}>
+                <span className={`status ${statusClass(payment.paymentStatus)}`}>
                   {payment.paymentStatus}
                 </span>
                 <span>
@@ -107,15 +146,27 @@ const AdminPayments = () => {
                 <span>
                   {payment.receiptVerifiedAt ? (
                     <span className="status success">Accepted</span>
-                  ) : payment.receiptId && payment.paymentStatus !== 'PAID' ? (
-                    <button
-                      type="button"
-                      className="compact-button"
-                      onClick={() => handleAcceptPayment(payment)}
-                      disabled={acceptingId === payment.id}
-                    >
-                      {acceptingId === payment.id ? 'Accepting...' : 'Accept'}
-                    </button>
+                  ) : payment.paymentStatus === 'FAILED' ? (
+                    <span className="status failed">Rejected</span>
+                  ) : canReviewPayment(payment) ? (
+                    <div className="approval-actions">
+                      <button
+                        type="button"
+                        className="compact-button"
+                        onClick={() => handleAcceptPayment(payment)}
+                        disabled={acceptingId === payment.id || rejectingId === payment.id}
+                      >
+                        {acceptingId === payment.id ? 'Accepting...' : 'Accept'}
+                      </button>
+                      <button
+                        type="button"
+                        className="compact-button danger-button"
+                        onClick={() => handleRejectPayment(payment)}
+                        disabled={acceptingId === payment.id || rejectingId === payment.id}
+                      >
+                        {rejectingId === payment.id ? 'Rejecting...' : 'Reject'}
+                      </button>
+                    </div>
                   ) : payment.paymentStatus === 'PAID' ? (
                     <span className="status success">Paid</span>
                   ) : (

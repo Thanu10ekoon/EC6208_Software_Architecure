@@ -20,6 +20,14 @@ public interface TrafficFineRepository extends JpaRepository<TrafficFine, Long> 
   @Query("select coalesce(sum(f.fineAmount), 0) from TrafficFine f where f.status <> :status")
   BigDecimal sumAmountByStatusNot(@Param("status") FineStatus status);
 
+  @Query("select count(f) as totalFines, "
+      + "sum(case when f.status = com.slpolice.smartfine.entity.FineStatus.PAID then 1 else 0 end) as paidFines, "
+      + "sum(case when f.status <> com.slpolice.smartfine.entity.FineStatus.PAID then 1 else 0 end) as pendingFines, "
+      + "coalesce(sum(case when f.status = com.slpolice.smartfine.entity.FineStatus.PAID then f.fineAmount else 0 end), 0) as totalCollectedAmount, "
+      + "coalesce(sum(case when f.status <> com.slpolice.smartfine.entity.FineStatus.PAID then f.fineAmount else 0 end), 0) as totalOutstandingAmount "
+      + "from TrafficFine f")
+  FineStatsView findFineStats();
+
   @Query("select r.id as regionId, r.name as regionName, "
       + "count(f) as totalFines, "
       + "sum(case when f.status = com.slpolice.smartfine.entity.FineStatus.PAID then 1 else 0 end) as paidFines, "
@@ -32,6 +40,14 @@ public interface TrafficFineRepository extends JpaRepository<TrafficFine, Long> 
   interface RegionFineStatsView {
     Long getRegionId();
     String getRegionName();
+    Long getTotalFines();
+    Long getPaidFines();
+    Long getPendingFines();
+    BigDecimal getTotalCollectedAmount();
+    BigDecimal getTotalOutstandingAmount();
+  }
+
+  interface FineStatsView {
     Long getTotalFines();
     Long getPaidFines();
     Long getPendingFines();

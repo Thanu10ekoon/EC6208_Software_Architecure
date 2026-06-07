@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import SectionHeader from '../components/SectionHeader'
 import { listDriverFines } from '../api/fines'
-import { createPayment, listPayments, uploadReceipt } from '../api/payments'
+import { confirmStripeCheckout, createPayment, createStripeCheckout, listPayments, uploadReceipt } from '../api/payments'
 import { formatCurrency, formatDate } from '../utils/formatters'
 
 const initialForm = {
@@ -12,6 +13,7 @@ const initialForm = {
 
 const DriverPayments = () => {
   const [form, setForm] = useState(initialForm)
+  const [searchParams, setSearchParams] = useSearchParams()
   const [receiptFile, setReceiptFile] = useState(null)
   const [fines, setFines] = useState([])
   const [payments, setPayments] = useState([])
@@ -20,6 +22,7 @@ const DriverPayments = () => {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
 
   const loadData = async () => {
     setLoading(true)
@@ -40,13 +43,43 @@ const DriverPayments = () => {
     return () => clearTimeout(timer)
   }, [])
 
+  useEffect(() => {
+    const sessionId = searchParams.get('session_id')
+    if (!sessionId) {
+      return
+    }
+
+    const confirmPayment = async () => {
+      setSaving(true)
+      setError('')
+      setNotice('')
+      try {
+        await confirmStripeCheckout(sessionId)
+        setNotice('Online payment completed')
+        setSearchParams({})
+        await loadData()
+      } catch (err) {
+        setError(err?.response?.data?.message || 'Failed to confirm Stripe payment')
+      } finally {
+        setSaving(false)
+      }
+    }
+
+    confirmPayment()
+  }, [searchParams, setSearchParams])
+
   const handleChange = (event) => {
     setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }))
   }
 
-  const paymentFineIds = new Set(payments.map((payment) => payment.fineId))
-  const payableFines = fines.filter((fine) => fine.status !== 'PAID' && !paymentFineIds.has(fine.id))
+  const activePaymentFineIds = new Set(
+    payments
+      .filter((payment) => !['FAILED', 'REVERSED'].includes(payment.paymentStatus))
+      .map((payment) => payment.fineId)
+  )
+  const payableFines = fines.filter((fine) => fine.status !== 'PAID' && !activePaymentFineIds.has(fine.id))
   const fineById = new Map(fines.map((fine) => [fine.id, fine]))
+  const selectedFine = fineById.get(Number(form.fineId))
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -57,15 +90,26 @@ const DriverPayments = () => {
 
     setSaving(true)
     setError('')
+    setNotice('')
     try {
+      if (form.paymentMethod === 'ONLINE') {
+        try {
+          const checkout = await createStripeCheckout({
+            fineId: Number(form.fineId),
+          })
+          window.location.assign(checkout.checkoutUrl)
+        } catch (err) {
+          setError(stripeCheckoutError(err))
+        }
+        return
+      }
+
       const payment = await createPayment({
         fineId: Number(form.fineId),
         paymentMethod: form.paymentMethod,
         transactionReference: form.transactionReference || null,
       })
-      if (form.paymentMethod === 'RECEIPT_UPLOAD') {
-        await uploadReceipt(payment.id, receiptFile)
-      }
+      await uploadReceipt(payment.id, receiptFile)
       setForm(initialForm)
       setReceiptFile(null)
       setFileInputKey((prev) => prev + 1)
@@ -75,6 +119,19 @@ const DriverPayments = () => {
     } finally {
       setSaving(false)
     }
+  }
+
+  const stripeCheckoutError = (err) => {
+    if (err?.response?.data?.message) {
+      return err.response.data.message
+    }
+    if (err?.response?.status) {
+      return `Failed to start Stripe Checkout (${err.response.status})`
+    }
+    if (err?.request) {
+      return 'Failed to start Stripe Checkout: backend did not respond'
+    }
+    return err?.message || 'Failed to start Stripe Checkout'
   }
 
   const handleFileChange = (paymentId, file) => {
@@ -126,8 +183,28 @@ const DriverPayments = () => {
           </label>
           <label>
             Transaction reference
-            <input name="transactionReference" value={form.transactionReference} onChange={handleChange} />
+            <input
+              name="transactionReference"
+              value={form.transactionReference}
+              onChange={handleChange}
+              disabled={form.paymentMethod === 'ONLINE'}
+              placeholder={form.paymentMethod === 'ONLINE' ? 'Created by Stripe Checkout' : 'Bank or receipt reference'}
+            />
           </label>
+          {form.paymentMethod === 'ONLINE' && (
+            <div className="payment-card-form stripe-checkout-summary">
+              <div>
+                <strong>Stripe Checkout</strong>
+                <p>Card details are entered on Stripe's secure test payment page.</p>
+              </div>
+              {selectedFine && (
+                <div className="payment-summary">
+                  <span>Amount to pay</span>
+                  <strong>{formatCurrency(selectedFine.fineAmount)}</strong>
+                </div>
+              )}
+            </div>
+          )}
           {form.paymentMethod === 'RECEIPT_UPLOAD' && (
             <label>
               Receipt file
@@ -140,8 +217,13 @@ const DriverPayments = () => {
               />
             </label>
           )}
-          <button type="submit" disabled={saving}>Create payment</button>
+          <div className="form-actions">
+            <button type="submit" disabled={saving || !form.fineId}>
+              {saving ? 'Processing...' : form.paymentMethod === 'ONLINE' ? 'Pay online' : 'Create payment'}
+            </button>
+          </div>
         </form>
+        {notice && <p className="form-success">{notice}</p>}
         {error && <p className="form-error">{error}</p>}
         {!loading && payableFines.length === 0 && <p className="muted">No unpaid fines are available for a new payment.</p>}
       </div>

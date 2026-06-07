@@ -61,4 +61,11 @@ public class AdminController {
       @PathVariable Long paymentId) {
     return paymentService.acceptReceiptPayment(paymentId, user.getUserId());
   }
+
+  @PatchMapping("/payments/{paymentId}/reject")
+  @PreAuthorize("hasRole('ADMIN')")
+  public PaymentResponse rejectPayment(@AuthenticationPrincipal AuthUserDetails user,
+      @PathVariable Long paymentId) {
+    return paymentService.rejectReceiptPayment(paymentId, user.getUserId());
+  }
 }

@@ -59,6 +59,23 @@ Edit [backend/src/main/resources/application.yml](backend/src/main/resources/app
 - `app.jwt.secret` (min 32 chars)
 - `spring.mail.*` if you want email delivery to be wired
 
+For Stripe developer/test payments, create a local backend `.env` file:
+
+```powershell
+cd backend
+copy .env.example .env
+```
+
+Then set your Stripe sandbox/test secret key in `backend/.env`:
+
+```properties
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+STRIPE_SUCCESS_URL=http://localhost:5173/driver/payments?session_id=CHECKOUT_SESSION_ID
+STRIPE_CANCEL_URL=http://localhost:5173/driver/payments
+```
+
+Use the Stripe `Secret key` that starts with `sk_test_`. Do not use the `Publishable key` (`pk_test_`) for the backend and do not commit `backend/.env`.
+
 ## 3) Start backend
 
 ```bash

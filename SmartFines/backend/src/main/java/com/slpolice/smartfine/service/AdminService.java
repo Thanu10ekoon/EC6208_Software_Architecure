@@ -14,7 +14,6 @@ import com.slpolice.smartfine.repository.RoleRepository;
 import com.slpolice.smartfine.repository.TrafficFineRepository;
 import com.slpolice.smartfine.repository.UserRepository;
 import com.slpolice.smartfine.repository.UserRoleRepository;
-import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -107,11 +106,7 @@ public class AdminService {
 
   @Transactional(readOnly = true)
   public AdminStatsResponse getStats() {
-    long totalFines = trafficFineRepository.count();
-    long paidFines = trafficFineRepository.countByStatus(com.slpolice.smartfine.entity.FineStatus.PAID);
-    long pendingFines = totalFines - paidFines;
-    BigDecimal totalCollected = trafficFineRepository.sumAmountByStatus(com.slpolice.smartfine.entity.FineStatus.PAID);
-    BigDecimal totalOutstanding = trafficFineRepository.sumAmountByStatusNot(com.slpolice.smartfine.entity.FineStatus.PAID);
+    TrafficFineRepository.FineStatsView stats = trafficFineRepository.findFineStats();
 
     List<AdminStatsResponse.RegionStats> regionStats = trafficFineRepository.findRegionFineStats().stream()
         .map(view -> AdminStatsResponse.RegionStats.builder()
@@ -126,11 +121,11 @@ public class AdminService {
         .toList();
 
     return AdminStatsResponse.builder()
-        .totalFines(totalFines)
-        .paidFines(paidFines)
-        .pendingFines(pendingFines)
-        .totalCollectedAmount(totalCollected)
-        .totalOutstandingAmount(totalOutstanding)
+        .totalFines(stats.getTotalFines() == null ? 0 : stats.getTotalFines())
+        .paidFines(stats.getPaidFines() == null ? 0 : stats.getPaidFines())
+        .pendingFines(stats.getPendingFines() == null ? 0 : stats.getPendingFines())
+        .totalCollectedAmount(stats.getTotalCollectedAmount())
+        .totalOutstandingAmount(stats.getTotalOutstandingAmount())
         .regionStats(regionStats)
         .build();
   }

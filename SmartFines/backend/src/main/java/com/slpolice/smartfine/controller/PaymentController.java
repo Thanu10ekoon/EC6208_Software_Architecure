@@ -3,6 +3,8 @@ package com.slpolice.smartfine.controller;
 import com.slpolice.smartfine.dto.PaymentCreateRequest;
 import com.slpolice.smartfine.dto.PaymentResponse;
 import com.slpolice.smartfine.dto.ReceiptUploadResponse;
+import com.slpolice.smartfine.dto.StripeCheckoutRequest;
+import com.slpolice.smartfine.dto.StripeCheckoutResponse;
 import com.slpolice.smartfine.security.AuthUserDetails;
 import com.slpolice.smartfine.service.PaymentService;
 import jakarta.validation.Valid;
@@ -38,6 +40,20 @@ public class PaymentController {
   public PaymentResponse createPayment(@AuthenticationPrincipal AuthUserDetails user,
       @Valid @RequestBody PaymentCreateRequest request) {
     return paymentService.createPayment(user.getUserId(), request);
+  }
+
+  @PostMapping("/stripe/checkout")
+  @PreAuthorize("hasRole('DRIVER')")
+  public StripeCheckoutResponse createStripeCheckout(@AuthenticationPrincipal AuthUserDetails user,
+      @Valid @RequestBody StripeCheckoutRequest request) {
+    return paymentService.createStripeCheckout(user.getUserId(), request);
+  }
+
+  @PostMapping("/stripe/confirm")
+  @PreAuthorize("hasRole('DRIVER')")
+  public PaymentResponse confirmStripeCheckout(@AuthenticationPrincipal AuthUserDetails user,
+      @RequestParam("sessionId") String sessionId) {
+    return paymentService.confirmStripeCheckout(user.getUserId(), sessionId);
   }
 
   @PostMapping("/{paymentId}/receipt")

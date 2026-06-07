@@ -5,6 +5,18 @@ export const createPayment = async (payload) => {
   return data
 }
 
+export const createStripeCheckout = async (payload) => {
+  const { data } = await client.post('/payments/stripe/checkout', payload)
+  return data
+}
+
+export const confirmStripeCheckout = async (sessionId) => {
+  const { data } = await client.post('/payments/stripe/confirm', null, {
+    params: { sessionId },
+  })
+  return data
+}
+
 export const listPayments = async () => {
   const { data } = await client.get('/payments')
   return data

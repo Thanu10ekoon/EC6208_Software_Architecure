@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +12,7 @@ import NotificationsScreen from '../screens/driver/NotificationsScreen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
+import { listNotifications } from '../api/notifications';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -39,6 +41,16 @@ export default function DriverTabs() {
   const insets = useSafeAreaInsets();
   const { session, logout } = useAuth();
   const firstName = session?.fullName?.split(' ')[0] ?? 'Driver';
+  const [notifBadge, setNotifBadge] = useState(undefined);
+
+  useEffect(() => {
+    listNotifications()
+      .then(data => {
+        const count = Array.isArray(data) ? data.filter(n => !n.isRead).length : 0;
+        setNotifBadge(count > 0 ? count : undefined);
+      })
+      .catch(() => {});
+  }, []);
 
   const tabBarStyle = {
     backgroundColor: colors.surfaceStrong,
@@ -75,7 +87,11 @@ export default function DriverTabs() {
       <Tab.Screen name="Dashboard" component={DriverDashboardScreen} options={dashboardHeaderOptions} />
       <Tab.Screen name="Fines" component={DriverFinesScreen} />
       <Tab.Screen name="Payments" component={PaymentsStack} />
-      <Tab.Screen name="Notifications" component={NotificationsScreen} />
+      <Tab.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{ tabBarBadge: notifBadge }}
+      />
     </Tab.Navigator>
   );
 }

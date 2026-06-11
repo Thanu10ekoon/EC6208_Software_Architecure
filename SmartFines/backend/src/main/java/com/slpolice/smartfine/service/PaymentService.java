@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -61,18 +63,20 @@ public class PaymentService {
   private final String stripeCurrency;
   private final String stripeSuccessUrl;
   private final String stripeCancelUrl;
+  private final NotifySmsService notifySmsService;
 
+  @Autowired
   public PaymentService(PaymentRepository paymentRepository,
-      PaymentReceiptRepository paymentReceiptRepository,
-      TrafficFineRepository fineRepository,
-      FineStatusHistoryRepository fineStatusHistoryRepository,
-      UserRepository userRepository,
-      ReceiptStorageService receiptStorageService,
-      NotificationService notificationService,
-      @Value("${app.stripe.secret-key:}") String stripeSecretKey,
-      @Value("${app.stripe.currency:lkr}") String stripeCurrency,
-      @Value("${app.stripe.success-url:http://localhost:5173/driver/payments?session_id=CHECKOUT_SESSION_ID}") String stripeSuccessUrl,
-      @Value("${app.stripe.cancel-url:http://localhost:5173/driver/payments}") String stripeCancelUrl) {
+                        PaymentReceiptRepository paymentReceiptRepository,
+                        TrafficFineRepository fineRepository,
+                        FineStatusHistoryRepository fineStatusHistoryRepository,
+                        UserRepository userRepository,
+                        ReceiptStorageService receiptStorageService,
+                        NotificationService notificationService,
+                        @Value("${app.stripe.secret-key:}") String stripeSecretKey,
+                        @Value("${app.stripe.currency:lkr}") String stripeCurrency,
+                        @Value("${app.stripe.success-url:http://localhost:5173/driver/payments?session_id=CHECKOUT_SESSION_ID}") String stripeSuccessUrl,
+                        @Value("${app.stripe.cancel-url:http://localhost:5173/driver/payments}") String stripeCancelUrl, NotifySmsService notifySmsService) {
     this.paymentRepository = paymentRepository;
     this.paymentReceiptRepository = paymentReceiptRepository;
     this.fineRepository = fineRepository;
@@ -84,6 +88,7 @@ public class PaymentService {
     this.stripeCurrency = stripeCurrency;
     this.stripeSuccessUrl = stripeSuccessUrl;
     this.stripeCancelUrl = stripeCancelUrl;
+    this.notifySmsService = notifySmsService;
   }
 
   @Transactional
@@ -314,7 +319,32 @@ public class PaymentService {
 
     Payment saved = paymentRepository.save(payment);
     if (!wasPaid) {
-      notificationService.notifyPaymentReceived(payment.getFine().getOfficer(), payment.getDriver(), payment.getFine(), saved);
+      notificationService.notifyPaymentReceived(
+              payment.getFine().getOfficer(),
+              payment.getDriver(),
+              payment.getFine(),
+              saved
+      );
+
+      String referenceNumber = payment.getFine().getFineReferenceNumber();
+      String vehicleNumber = payment.getFine().getVehicleNumber();
+      BigDecimal fineAmount = payment.getFine().getFineAmount();
+
+      String recipientPhoneNumber = "94702294900";
+      String message =
+              """
+              Smart Fines Alert
+      
+              Traffic Fine Ref: %s
+              Vehicle: %s
+      
+              Driver has paid LKR %.2f
+      
+              No further action required.
+              """.formatted(referenceNumber, vehicleNumber, fineAmount);
+
+      System.out.println("About to send SMS");
+      notifySmsService.sendSms(recipientPhoneNumber, message);
     }
 
     return toResponse(saved);

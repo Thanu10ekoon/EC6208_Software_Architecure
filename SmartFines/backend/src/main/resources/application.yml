@@ -18,6 +18,7 @@ spring:
       hibernate:
         format_sql: true
     open-in-view: false
+
   mail:
     host: smtp.example.com
     port: 587
@@ -40,7 +41,7 @@ app:
   receipts:
     storage-path: ./storage/receipts
   stripe:
-    secret-key: ${STRIPE_SECRET_KEY:}
+    secret-key: ${STRIPE_SECRET_KEY}
     currency: lkr
     success-url: ${STRIPE_SUCCESS_URL:http://localhost:5173/driver/payments?session_id=CHECKOUT_SESSION_ID}
     cancel-url: ${STRIPE_CANCEL_URL:http://localhost:5173/driver/payments}
@@ -49,3 +50,9 @@ logging:
   level:
     org.hibernate.SQL: warn
     org.hibernate.orm.jdbc.bind: warn
+
+notify:
+  user-id: 31999
+  api-key: 6ZFiDJ7cUkZA7tAB5DRM
+  sender-id: NotifyDEMO
+  base-url: https://app.notify.lk/api/v1/send

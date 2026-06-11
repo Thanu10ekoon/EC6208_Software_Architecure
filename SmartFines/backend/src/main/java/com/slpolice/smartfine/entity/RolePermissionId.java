@@ -9,9 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Embeddable
-@Getter
-@Setter
-@NoArgsConstructor
 @EqualsAndHashCode
 public class RolePermissionId implements Serializable {
   @Column(name = "role_id")
@@ -19,4 +16,20 @@ public class RolePermissionId implements Serializable {
 
   @Column(name = "permission_id")
   private Long permissionId;
+
+  public Long getRoleId() {
+    return roleId;
+  }
+
+  public void setRoleId(Long roleId) {
+    this.roleId = roleId;
+  }
+
+  public Long getPermissionId() {
+    return permissionId;
+  }
+
+  public void setPermissionId(Long permissionId) {
+    this.permissionId = permissionId;
+  }
 }

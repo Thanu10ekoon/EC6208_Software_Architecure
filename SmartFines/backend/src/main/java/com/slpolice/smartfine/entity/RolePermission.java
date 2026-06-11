@@ -16,9 +16,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "role_permissions")
-@Getter
-@Setter
-@NoArgsConstructor
 public class RolePermission {
   @EmbeddedId
   private RolePermissionId id = new RolePermissionId();
@@ -36,4 +33,36 @@ public class RolePermission {
   @CreationTimestamp
   @Column(name = "granted_at", nullable = false, updatable = false)
   private Instant grantedAt;
+
+  public RolePermissionId getId() {
+    return id;
+  }
+
+  public void setId(RolePermissionId id) {
+    this.id = id;
+  }
+
+  public Role getRole() {
+    return role;
+  }
+
+  public void setRole(Role role) {
+    this.role = role;
+  }
+
+  public Permission getPermission() {
+    return permission;
+  }
+
+  public void setPermission(Permission permission) {
+    this.permission = permission;
+  }
+
+  public Instant getGrantedAt() {
+    return grantedAt;
+  }
+
+  public void setGrantedAt(Instant grantedAt) {
+    this.grantedAt = grantedAt;
+  }
 }

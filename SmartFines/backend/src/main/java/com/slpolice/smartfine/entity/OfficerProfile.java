@@ -18,9 +18,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "officer_profiles")
-@Getter
-@Setter
-@NoArgsConstructor
 public class OfficerProfile {
   @Id
   @Column(name = "user_id")
@@ -55,4 +52,76 @@ public class OfficerProfile {
   @UpdateTimestamp
   @Column(name = "updated_at")
   private Instant updatedAt;
+
+  public Long getUserId() {
+    return userId;
+  }
+
+  public void setUserId(Long userId) {
+    this.userId = userId;
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  public void setUser(User user) {
+    this.user = user;
+  }
+
+  public String getOfficerCode() {
+    return officerCode;
+  }
+
+  public void setOfficerCode(String officerCode) {
+    this.officerCode = officerCode;
+  }
+
+  public String getBadgeNumber() {
+    return badgeNumber;
+  }
+
+  public void setBadgeNumber(String badgeNumber) {
+    this.badgeNumber = badgeNumber;
+  }
+
+  public String getStationName() {
+    return stationName;
+  }
+
+  public void setStationName(String stationName) {
+    this.stationName = stationName;
+  }
+
+  public Region getRegion() {
+    return region;
+  }
+
+  public void setRegion(Region region) {
+    this.region = region;
+  }
+
+  public User getCreatedByUser() {
+    return createdByUser;
+  }
+
+  public void setCreatedByUser(User createdByUser) {
+    this.createdByUser = createdByUser;
+  }
+
+  public Instant getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(Instant createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public Instant getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(Instant updatedAt) {
+    this.updatedAt = updatedAt;
+  }
 }

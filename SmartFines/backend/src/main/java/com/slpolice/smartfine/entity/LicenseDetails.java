@@ -21,9 +21,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "license_details")
-@Getter
-@Setter
-@NoArgsConstructor
 public class LicenseDetails {
   @Id
   @Column(name = "user_id")
@@ -64,4 +61,92 @@ public class LicenseDetails {
   @UpdateTimestamp
   @Column(name = "updated_at")
   private Instant updatedAt;
+
+  public Long getUserId() {
+    return userId;
+  }
+
+  public void setUserId(Long userId) {
+    this.userId = userId;
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  public void setUser(User user) {
+    this.user = user;
+  }
+
+  public String getLicenseNumber() {
+    return licenseNumber;
+  }
+
+  public void setLicenseNumber(String licenseNumber) {
+    this.licenseNumber = licenseNumber;
+  }
+
+  public LocalDate getDateOfBirth() {
+    return dateOfBirth;
+  }
+
+  public void setDateOfBirth(LocalDate dateOfBirth) {
+    this.dateOfBirth = dateOfBirth;
+  }
+
+  public String getAddress() {
+    return address;
+  }
+
+  public void setAddress(String address) {
+    this.address = address;
+  }
+
+  public Region getRegion() {
+    return region;
+  }
+
+  public void setRegion(Region region) {
+    this.region = region;
+  }
+
+  public int getStars() {
+    return stars;
+  }
+
+  public void setStars(int stars) {
+    this.stars = stars;
+  }
+
+  public LicenseStatus getLicenseStatus() {
+    return licenseStatus;
+  }
+
+  public void setLicenseStatus(LicenseStatus licenseStatus) {
+    this.licenseStatus = licenseStatus;
+  }
+
+  public Instant getLicenseCancelledAt() {
+    return licenseCancelledAt;
+  }
+
+  public void setLicenseCancelledAt(Instant licenseCancelledAt) {
+    this.licenseCancelledAt = licenseCancelledAt;
+  }
+
+  public Instant getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(Instant createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public Instant getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(Instant updatedAt) {
+    this.updatedAt = updatedAt;
+  }
 }

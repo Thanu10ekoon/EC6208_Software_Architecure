@@ -16,9 +16,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "license_detail_categories")
-@Getter
-@Setter
-@NoArgsConstructor
 public class LicenseDetailCategory {
   @EmbeddedId
   private LicenseDetailCategoryId id = new LicenseDetailCategoryId();
@@ -39,4 +36,44 @@ public class LicenseDetailCategory {
 
   @Column(name = "expires_at")
   private Instant expiresAt;
+
+  public LicenseDetailCategoryId getId() {
+    return id;
+  }
+
+  public void setId(LicenseDetailCategoryId id) {
+    this.id = id;
+  }
+
+  public LicenseDetails getLicenseDetails() {
+    return licenseDetails;
+  }
+
+  public void setLicenseDetails(LicenseDetails licenseDetails) {
+    this.licenseDetails = licenseDetails;
+  }
+
+  public VehicleCategory getVehicleCategory() {
+    return vehicleCategory;
+  }
+
+  public void setVehicleCategory(VehicleCategory vehicleCategory) {
+    this.vehicleCategory = vehicleCategory;
+  }
+
+  public Instant getGrantedAt() {
+    return grantedAt;
+  }
+
+  public void setGrantedAt(Instant grantedAt) {
+    this.grantedAt = grantedAt;
+  }
+
+  public Instant getExpiresAt() {
+    return expiresAt;
+  }
+
+  public void setExpiresAt(Instant expiresAt) {
+    this.expiresAt = expiresAt;
+  }
 }

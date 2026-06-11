@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -10,14 +11,16 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { driverSignup } from '../../api/auth';
 import FormInput from '../../components/FormInput';
+import ErrorBanner from '../../components/ErrorBanner';
 import { extractApiError } from '../../utils/apiError';
-import { colors, radius, shadow, spacing } from '../../constants/theme';
+import { colors, fonts, radius, shadow, spacing } from '../../constants/theme';
 
 const schema = yup.object({
   fullName: yup.string().required('Full name is required'),
@@ -86,13 +89,16 @@ export default function DriverSignupScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.card}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Text style={styles.backText}>← Back to sign in</Text>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.7}>
+              <Ionicons name="chevron-back" size={18} color={colors.accentStrong} />
+              <Text style={styles.backText}>Back to sign in</Text>
             </TouchableOpacity>
 
-            <Text style={styles.badge}>DRIVER ONBOARDING</Text>
-            <Text style={styles.heading}>Create your account</Text>
-            <Text style={styles.subtitle}>Join SmartFines to manage your fines and payments.</Text>
+            <View style={styles.cardHeader}>
+              <Text style={styles.eyebrow}>DRIVER ONBOARDING</Text>
+              <Text style={styles.heading}>Create account</Text>
+              <Text style={styles.subtitle}>Join SmartFines to manage your fines and payments.</Text>
+            </View>
 
             <Controller
               control={control}
@@ -192,12 +198,19 @@ export default function DriverSignupScreen({ navigation }) {
               )}
             />
 
-            <View style={styles.dateWrapper}>
-              <Text style={styles.fieldLabel}>Date of Birth</Text>
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.fieldLabel, errors.dateOfBirth && styles.fieldLabelError]}>
+                Date of Birth
+              </Text>
               <Pressable
                 style={[styles.dateBtn, errors.dateOfBirth ? styles.dateBtnError : null]}
                 onPress={() => setShowDatePicker(true)}
               >
+                <Ionicons
+                  name="calendar-outline"
+                  size={16}
+                  color={dateOfBirth ? colors.text : colors.textMuted}
+                />
                 <Text style={[styles.dateBtnText, !dateOfBirth && styles.datePlaceholder]}>
                   {dateOfBirth || 'Select date of birth'}
                 </Text>
@@ -239,7 +252,8 @@ export default function DriverSignupScreen({ navigation }) {
                   autoCapitalize="sentences"
                   multiline
                   numberOfLines={2}
-                  style={styles.multiline}
+                  containerStyle={styles.multilineContainer}
+                  style={styles.multilineInput}
                 />
               )}
             />
@@ -260,7 +274,7 @@ export default function DriverSignupScreen({ navigation }) {
               )}
             />
 
-            {apiError ? <Text style={styles.apiError}>{apiError}</Text> : null}
+            <ErrorBanner message={apiError} />
 
             <TouchableOpacity
               style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
@@ -268,6 +282,9 @@ export default function DriverSignupScreen({ navigation }) {
               disabled={loading}
               activeOpacity={0.85}
             >
+              {loading ? (
+                <ActivityIndicator size="small" color={colors.white} style={styles.spinner} />
+              ) : null}
               <Text style={styles.submitBtnText}>
                 {loading ? 'Creating account…' : 'Create account'}
               </Text>
@@ -280,13 +297,8 @@ export default function DriverSignupScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  flex: {
-    flex: 1,
-  },
+  safe: { flex: 1, backgroundColor: colors.bg },
+  flex: { flex: 1 },
   scroll: {
     flexGrow: 1,
     paddingHorizontal: spacing.lg,
@@ -302,81 +314,93 @@ const styles = StyleSheet.create({
     ...shadow,
   },
   backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     marginBottom: spacing.xs,
+    alignSelf: 'flex-start',
   },
   backText: {
     fontSize: 14,
+    fontFamily: fonts.semiBold,
     color: colors.accentStrong,
-    fontWeight: '500',
   },
-  badge: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 2.5,
+  cardHeader: {
+    gap: 4,
+    marginBottom: spacing.xs,
+  },
+  eyebrow: {
+    fontSize: 10,
+    fontFamily: fonts.bold,
+    letterSpacing: 2,
     color: colors.accentStrong,
+    textTransform: 'uppercase',
   },
   heading: {
-    fontSize: 26,
-    fontWeight: '700',
+    fontSize: 24,
+    fontFamily: fonts.bold,
     color: colors.text,
+    letterSpacing: -0.3,
     marginTop: 2,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
+    fontFamily: fonts.regular,
     color: colors.textMuted,
-    marginBottom: spacing.xs,
+    lineHeight: 19,
   },
-  dateWrapper: {
-    gap: spacing.xs,
-  },
+  fieldGroup: { gap: 6 },
   fieldLabel: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 13,
+    fontFamily: fonts.semiBold,
     color: colors.text,
+    letterSpacing: 0.1,
   },
+  fieldLabelError: { color: colors.danger },
   dateBtn: {
-    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderWidth: 1.5,
     borderColor: colors.border,
     borderRadius: radius.md,
     backgroundColor: colors.white,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
-  dateBtnError: {
-    borderColor: colors.danger,
-  },
+  dateBtnError: { borderColor: colors.danger },
   dateBtnText: {
     fontSize: 15,
+    fontFamily: fonts.regular,
     color: colors.text,
   },
-  datePlaceholder: {
-    color: colors.textMuted,
-  },
+  datePlaceholder: { color: colors.textMuted },
   fieldError: {
     fontSize: 12,
+    fontFamily: fonts.regular,
     color: colors.danger,
   },
-  multiline: {
+  multilineContainer: {},
+  multilineInput: {
     height: 64,
     textAlignVertical: 'top',
   },
-  apiError: {
-    fontSize: 13,
-    color: colors.danger,
-  },
   submitBtn: {
     backgroundColor: colors.accent,
-    paddingVertical: 14,
+    paddingVertical: 15,
     borderRadius: radius.md,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
     marginTop: spacing.xs,
   },
-  submitBtnDisabled: {
-    opacity: 0.6,
-  },
+  submitBtnDisabled: { opacity: 0.65 },
+  spinner: { marginRight: 2 },
   submitBtnText: {
     color: colors.white,
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: fonts.semiBold,
+    letterSpacing: 0.2,
   },
 });

@@ -10,11 +10,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius, shadow, spacing } from '../../constants/theme';
+import { colors, fonts, radius, shadow, spacing } from '../../constants/theme';
 import { listDriverFines } from '../../api/fines';
 import { listPayments } from '../../api/payments';
 import { extractApiError } from '../../utils/apiError';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import EmptyState from '../../components/EmptyState';
+import ErrorBanner from '../../components/ErrorBanner';
 
 const PAYMENT_STATUS = {
   PAID: { bg: colors.mintSoft, text: colors.mint },
@@ -23,16 +25,8 @@ const PAYMENT_STATUS = {
   REVERSED: { bg: colors.dangerSoft, text: colors.danger },
 };
 
-function StatusBadge({ label, style }) {
-  return (
-    <View style={[styles.badge, { backgroundColor: style.bg }]}>
-      <Text style={[styles.badgeText, { color: style.text }]}>{label}</Text>
-    </View>
-  );
-}
-
-function SectionTitle({ title }) {
-  return <Text style={styles.sectionTitle}>{title}</Text>;
+function SectionHeader({ title }) {
+  return <Text style={styles.sectionHeader}>{title}</Text>;
 }
 
 function UnpaidFineCard({ fine, onPay }) {
@@ -42,28 +36,30 @@ function UnpaidFineCard({ fine, onPay }) {
         <Text style={styles.ref} numberOfLines={1}>{fine.fineReferenceNumber}</Text>
         <Text style={styles.amount}>{formatCurrency(fine.fineAmount)}</Text>
       </View>
-      <View style={styles.cardRow}>
-        <Text style={styles.violation} numberOfLines={1}>{fine.violationDetails}</Text>
-        <TouchableOpacity style={styles.payBtn} onPress={onPay} activeOpacity={0.75}>
-          <Text style={styles.payBtnText}>Pay</Text>
-          <Ionicons name="arrow-forward" size={14} color={colors.white} />
-        </TouchableOpacity>
-      </View>
+      <Text style={styles.violation} numberOfLines={2}>{fine.violationDetails}</Text>
+      <View style={styles.divider} />
+      <TouchableOpacity style={styles.payBtn} onPress={onPay} activeOpacity={0.8}>
+        <Ionicons name="card-outline" size={16} color={colors.white} />
+        <Text style={styles.payBtnText}>Pay with Stripe</Text>
+        <Ionicons name="arrow-forward" size={14} color={colors.white} />
+      </TouchableOpacity>
     </View>
   );
 }
 
 function PaymentHistoryCard({ payment, fineRef }) {
-  const statusStyle = PAYMENT_STATUS[payment.paymentStatus] ?? PAYMENT_STATUS.PENDING;
+  const s = PAYMENT_STATUS[payment.paymentStatus] ?? PAYMENT_STATUS.PENDING;
   return (
     <View style={styles.card}>
       <View style={styles.cardRow}>
         <Text style={styles.ref} numberOfLines={1}>{fineRef || `Fine #${payment.fineId}`}</Text>
-        <StatusBadge label={payment.paymentStatus} style={statusStyle} />
+        <View style={[styles.badge, { backgroundColor: s.bg }]}>
+          <Text style={[styles.badgeText, { color: s.text }]}>{payment.paymentStatus}</Text>
+        </View>
       </View>
       <View style={styles.cardRow}>
         <Text style={styles.metaLine}>
-          {formatCurrency(payment.amount)} · {payment.paymentMethod}
+          {formatCurrency(payment.amount)} · {payment.paymentMethod?.replace('_', ' ')}
         </Text>
         <Text style={styles.metaDate}>{formatDate(payment.createdAt)}</Text>
       </View>
@@ -95,39 +91,23 @@ export default function DriverPaymentsScreen({ navigation }) {
 
   useEffect(() => { load(); }, []);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    load(true);
-  };
+  const onRefresh = () => { setRefreshing(true); load(true); };
 
   const { unpaidFines, fineById } = useMemo(() => {
-    const activePaymentFineIds = new Set(
+    const activeIds = new Set(
       payments
         .filter(p => !['FAILED', 'REVERSED'].includes(p.paymentStatus))
         .map(p => p.fineId)
     );
-    const unpaid = fines.filter(
-      f => f.status !== 'PAID' && !activePaymentFineIds.has(f.id)
-    );
-    const byId = new Map(fines.map(f => [f.id, f]));
-    return { unpaidFines: unpaid, fineById: byId };
+    return {
+      unpaidFines: fines.filter(f => f.status !== 'PAID' && !activeIds.has(f.id)),
+      fineById: new Map(fines.map(f => [f.id, f])),
+    };
   }, [fines, payments]);
-
-  const handlePay = (fine) => {
-    navigation.navigate('StripeCheckout', {
-      fineId: fine.id,
-      fineRef: fine.fineReferenceNumber,
-      amount: fine.fineAmount,
-    });
-  };
 
   if (loading) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.pageHeader}>
-          <Text style={styles.title}>Payments</Text>
-          <Text style={styles.subtitle}>Pay fines securely with Stripe.</Text>
-        </View>
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.accent} />
         </View>
@@ -154,25 +134,32 @@ export default function DriverPaymentsScreen({ navigation }) {
           <Text style={styles.subtitle}>Pay fines securely with Stripe.</Text>
         </View>
 
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <ErrorBanner message={error} />
 
-        <SectionTitle title="Unpaid Fines" />
+        <SectionHeader title="Unpaid Fines" />
         {unpaidFines.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Ionicons name="checkmark-circle-outline" size={28} color={colors.mint} />
-            <Text style={styles.emptyText}>No unpaid fines.</Text>
-          </View>
+          <EmptyState
+            icon="checkmark-circle-outline"
+            title="No unpaid fines"
+            subtitle="All fines are settled."
+          />
         ) : (
           unpaidFines.map(fine => (
-            <UnpaidFineCard key={fine.id} fine={fine} onPay={() => handlePay(fine)} />
+            <UnpaidFineCard
+              key={fine.id}
+              fine={fine}
+              onPay={() => navigation.navigate('StripeCheckout', {
+                fineId: fine.id,
+                fineRef: fine.fineReferenceNumber,
+                amount: fine.fineAmount,
+              })}
+            />
           ))
         )}
 
-        <SectionTitle title="Payment History" style={styles.sectionGap} />
+        <SectionHeader title="Payment History" />
         {payments.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyText}>No payments yet.</Text>
-          </View>
+          <EmptyState icon="receipt-outline" title="No payments yet." />
         ) : (
           payments.map(payment => (
             <PaymentHistoryCard
@@ -189,21 +176,31 @@ export default function DriverPaymentsScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: spacing.lg, paddingBottom: spacing.xl },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  content: { padding: spacing.lg, paddingBottom: spacing.xl },
   pageHeader: { marginBottom: spacing.lg },
-  title: { fontSize: 22, fontWeight: '700', color: colors.text, marginBottom: 4 },
-  subtitle: { fontSize: 14, color: colors.textMuted },
-  sectionTitle: {
+  title: {
+    fontSize: 24,
+    fontFamily: fonts.bold,
+    color: colors.text,
+    letterSpacing: -0.4,
+    marginBottom: 4,
+  },
+  subtitle: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: fonts.regular,
+    color: colors.textMuted,
+    lineHeight: 19,
+  },
+  sectionHeader: {
+    fontSize: 11,
+    fontFamily: fonts.semiBold,
     color: colors.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
     marginBottom: spacing.sm,
     marginTop: spacing.md,
   },
-  sectionGap: { marginTop: spacing.xl },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
@@ -219,47 +216,62 @@ const styles = StyleSheet.create({
   },
   ref: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.text,
     flex: 1,
     marginRight: spacing.sm,
   },
-  amount: { fontSize: 15, fontWeight: '700', color: colors.text },
-  violation: { fontSize: 13, color: colors.textMuted, flex: 1, marginRight: spacing.sm },
-  metaLine: { fontSize: 13, color: colors.textMuted },
-  metaDate: { fontSize: 12, color: colors.textMuted },
+  amount: {
+    fontSize: 16,
+    fontFamily: fonts.bold,
+    color: colors.text,
+  },
+  violation: {
+    fontSize: 13,
+    fontFamily: fonts.regular,
+    color: colors.textMuted,
+    lineHeight: 19,
+    marginBottom: spacing.sm,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginHorizontal: -spacing.md,
+    marginBottom: spacing.sm,
+  },
   payBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.accent,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
+    paddingVertical: 11,
     borderRadius: radius.sm,
-    gap: 4,
+    gap: spacing.sm,
   },
-  payBtnText: { fontSize: 13, fontWeight: '700', color: colors.white },
+  payBtnText: {
+    fontSize: 13,
+    fontFamily: fonts.semiBold,
+    color: colors.white,
+  },
+  metaLine: {
+    fontSize: 13,
+    fontFamily: fonts.regular,
+    color: colors.textMuted,
+  },
+  metaDate: {
+    fontSize: 12,
+    fontFamily: fonts.regular,
+    color: colors.textMuted,
+  },
   badge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: radius.sm,
   },
-  badgeText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
-  emptyCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  emptyText: { fontSize: 14, color: colors.textMuted },
-  errorText: {
-    fontSize: 13,
-    color: colors.danger,
-    backgroundColor: colors.dangerSoft,
-    padding: spacing.md,
-    borderRadius: radius.sm,
-    marginBottom: spacing.md,
+  badgeText: {
+    fontSize: 10,
+    fontFamily: fonts.bold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

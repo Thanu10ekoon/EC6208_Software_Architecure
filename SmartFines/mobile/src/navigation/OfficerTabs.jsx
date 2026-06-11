@@ -1,11 +1,11 @@
+import { Alert, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native';
 import OfficerDashboardScreen from '../screens/officer/OfficerDashboardScreen';
 import IssueFineScreen from '../screens/officer/IssueFineScreen';
 import OfficerFinesScreen from '../screens/officer/OfficerFinesScreen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../constants/theme';
+import { colors, fonts } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 
 const Tab = createBottomTabNavigator();
@@ -22,7 +22,19 @@ function tabIcon(route, focused, color) {
 export default function OfficerTabs() {
   const insets = useSafeAreaInsets();
   const { session, logout } = useAuth();
-  const firstName = session?.fullName?.split(' ')[0] ?? 'Officer';
+  const fullName = session?.fullName ?? 'Officer';
+
+  const confirmLogout = () => {
+    Alert.alert(
+      'Sign out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign out', style: 'destructive', onPress: logout },
+      ],
+      { cancelable: true }
+    );
+  };
 
   const tabBarStyle = {
     backgroundColor: colors.surfaceStrong,
@@ -34,12 +46,17 @@ export default function OfficerTabs() {
 
   const dashboardHeaderOptions = {
     headerShown: true,
-    headerTitle: `Hi, ${firstName}`,
-    headerTitleStyle: { color: colors.text, fontSize: 18, fontWeight: '700' },
+    headerTitle: `Hi, ${fullName}`,
+    headerTitleStyle: {
+      color: colors.text,
+      fontSize: 18,
+      fontFamily: fonts.bold,
+      letterSpacing: -0.3,
+    },
     headerStyle: { backgroundColor: colors.bg },
     headerShadowVisible: false,
     headerRight: () => (
-      <TouchableOpacity onPress={logout} style={{ marginRight: 16, padding: 4 }}>
+      <TouchableOpacity onPress={confirmLogout} style={{ marginRight: 16, padding: 4 }}>
         <Ionicons name="log-out-outline" size={24} color={colors.accent} />
       </TouchableOpacity>
     ),
@@ -51,8 +68,13 @@ export default function OfficerTabs() {
         headerShown: false,
         tabBarStyle,
         tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: 'rgba(255,255,255,0.45)',
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.4)',
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontFamily: fonts.semiBold,
+          marginTop: 1,
+        },
+        tabBarItemStyle: { paddingHorizontal: 0 },
         tabBarIcon: ({ focused, color }) => tabIcon(route, focused, color),
       })}
     >

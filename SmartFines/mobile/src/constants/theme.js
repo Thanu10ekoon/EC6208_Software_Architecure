@@ -15,6 +15,14 @@ export const colors = {
   white: '#ffffff',
 };
 
+export const fonts = {
+  regular: 'Sora_400Regular',
+  medium: 'Sora_500Medium',
+  semiBold: 'Sora_600SemiBold',
+  bold: 'Sora_700Bold',
+  extraBold: 'Sora_800ExtraBold',
+};
+
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -26,14 +34,22 @@ export const spacing = {
 export const radius = {
   sm: 8,
   md: 12,
-  lg: 20,
-  xl: 28,
+  lg: 18,
+  xl: 24,
 };
 
 export const shadow = {
   shadowColor: '#140f0a',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.08,
+  shadowRadius: 12,
+  elevation: 4,
+};
+
+export const shadowStrong = {
+  shadowColor: '#140f0a',
   shadowOffset: { width: 0, height: 8 },
-  shadowOpacity: 0.12,
-  shadowRadius: 20,
-  elevation: 6,
+  shadowOpacity: 0.14,
+  shadowRadius: 24,
+  elevation: 8,
 };

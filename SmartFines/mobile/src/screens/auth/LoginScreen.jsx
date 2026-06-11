@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -10,13 +11,15 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useAuth } from '../../context/AuthContext';
 import FormInput from '../../components/FormInput';
+import ErrorBanner from '../../components/ErrorBanner';
 import { extractApiError } from '../../utils/apiError';
-import { colors, radius, shadow, spacing } from '../../constants/theme';
+import { colors, fonts, radius, shadowStrong, spacing } from '../../constants/theme';
 
 const schema = yup.object({
   identifier: yup.string().required('This field is required'),
@@ -24,8 +27,8 @@ const schema = yup.object({
 });
 
 const ROLES = [
-  { key: 'DRIVER', label: 'Driver' },
-  { key: 'OFFICER', label: 'Officer' },
+  { key: 'DRIVER', label: 'Driver', icon: 'car-outline' },
+  { key: 'OFFICER', label: 'Officer', icon: 'shield-outline' },
 ];
 
 export default function LoginScreen({ navigation }) {
@@ -41,6 +44,10 @@ export default function LoginScreen({ navigation }) {
 
   const identifierLabel = useMemo(
     () => (role === 'DRIVER' ? 'NIC Number' : 'Badge Number'),
+    [role]
+  );
+  const identifierPlaceholder = useMemo(
+    () => (role === 'DRIVER' ? 'Enter your NIC number' : 'Enter your badge number'),
     [role]
   );
 
@@ -66,10 +73,17 @@ export default function LoginScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.brand}>
+            <View style={styles.logoWrap}>
+              <Ionicons name="shield-checkmark" size={30} color={colors.white} />
+            </View>
+            <Text style={styles.appName}>SmartFines</Text>
+            <Text style={styles.tagline}>Fine management · Sri Lanka</Text>
+          </View>
+
           <View style={styles.card}>
-            <Text style={styles.badge}>SMARTFINES</Text>
             <Text style={styles.heading}>Sign in</Text>
-            <Text style={styles.subtitle}>Secure access for officers and drivers.</Text>
+            <Text style={styles.headingSub}>Secure access for drivers and officers.</Text>
 
             <View style={styles.roleRow}>
               {ROLES.map((r) => (
@@ -78,6 +92,11 @@ export default function LoginScreen({ navigation }) {
                   style={[styles.roleBtn, role === r.key && styles.roleBtnActive]}
                   onPress={() => setRole(r.key)}
                 >
+                  <Ionicons
+                    name={r.icon}
+                    size={14}
+                    color={role === r.key ? colors.white : colors.textMuted}
+                  />
                   <Text style={[styles.roleBtnText, role === r.key && styles.roleBtnTextActive]}>
                     {r.label}
                   </Text>
@@ -91,14 +110,13 @@ export default function LoginScreen({ navigation }) {
               render={({ field: { onChange, onBlur, value } }) => (
                 <FormInput
                   label={identifierLabel}
-                  placeholder={identifierLabel}
+                  placeholder={identifierPlaceholder}
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   error={errors.identifier?.message}
                   autoCapitalize="none"
                   autoCorrect={false}
-                  keyboardType={role === 'DRIVER' ? 'default' : 'default'}
                 />
               )}
             />
@@ -120,7 +138,7 @@ export default function LoginScreen({ navigation }) {
               )}
             />
 
-            {apiError ? <Text style={styles.apiError}>{apiError}</Text> : null}
+            <ErrorBanner message={apiError} />
 
             <TouchableOpacity
               style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
@@ -128,6 +146,9 @@ export default function LoginScreen({ navigation }) {
               disabled={loading}
               activeOpacity={0.85}
             >
+              {loading ? (
+                <ActivityIndicator size="small" color={colors.white} style={styles.spinner} />
+              ) : null}
               <Text style={styles.submitBtnText}>{loading ? 'Signing in…' : 'Sign in'}</Text>
             </TouchableOpacity>
 
@@ -149,18 +170,39 @@ export default function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  flex: {
-    flex: 1,
-  },
+  safe: { flex: 1, backgroundColor: colors.bg },
+  flex: { flex: 1 },
   scroll: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xl,
+    paddingTop: spacing.xl * 1.5,
+    paddingBottom: spacing.xl,
+  },
+  brand: {
+    alignItems: 'center',
+    paddingBottom: spacing.xl,
+  },
+  logoWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: colors.surfaceStrong,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  appName: {
+    fontSize: 30,
+    fontFamily: fonts.extraBold,
+    color: colors.text,
+    letterSpacing: -0.5,
+    marginBottom: 6,
+  },
+  tagline: {
+    fontSize: 13,
+    fontFamily: fonts.regular,
+    color: colors.textMuted,
+    letterSpacing: 0.3,
   },
   card: {
     backgroundColor: colors.surface,
@@ -169,68 +211,63 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     gap: spacing.md,
-    ...shadow,
-  },
-  badge: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 2.5,
-    color: colors.accentStrong,
+    ...shadowStrong,
   },
   heading: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 22,
+    fontFamily: fonts.bold,
     color: colors.text,
-    marginTop: 2,
+    letterSpacing: -0.3,
   },
-  subtitle: {
-    fontSize: 14,
+  headingSub: {
+    fontSize: 13,
+    fontFamily: fonts.regular,
     color: colors.textMuted,
-    marginBottom: spacing.xs,
+    marginTop: -spacing.sm,
   },
   roleRow: {
     flexDirection: 'row',
     backgroundColor: colors.bg,
     borderRadius: radius.md,
-    padding: 4,
+    padding: 3,
     gap: spacing.xs,
   },
   roleBtn: {
     flex: 1,
-    paddingVertical: 9,
-    borderRadius: radius.sm,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 9,
+    gap: 6,
   },
-  roleBtnActive: {
-    backgroundColor: colors.accent,
-  },
+  roleBtnActive: { backgroundColor: colors.accent },
   roleBtnText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: fonts.medium,
     color: colors.textMuted,
   },
   roleBtnTextActive: {
+    fontFamily: fonts.semiBold,
     color: colors.white,
-    fontWeight: '600',
-  },
-  apiError: {
-    fontSize: 13,
-    color: colors.danger,
   },
   submitBtn: {
     backgroundColor: colors.accent,
-    paddingVertical: 14,
+    paddingVertical: 15,
     borderRadius: radius.md,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
     marginTop: spacing.xs,
   },
-  submitBtnDisabled: {
-    opacity: 0.6,
-  },
+  submitBtnDisabled: { opacity: 0.65 },
+  spinner: { marginRight: 2 },
   submitBtnText: {
     color: colors.white,
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: fonts.semiBold,
+    letterSpacing: 0.2,
   },
   footerLink: {
     alignItems: 'center',
@@ -238,10 +275,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
+    fontFamily: fonts.regular,
     color: colors.textMuted,
   },
   footerLinkText: {
+    fontFamily: fonts.semiBold,
     color: colors.accentStrong,
-    fontWeight: '600',
   },
 });

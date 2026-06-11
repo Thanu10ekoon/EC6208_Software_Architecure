@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     AsyncStorage.getItem(SESSION_KEY)
       .then((raw) => { if (raw) setSession(JSON.parse(raw)); })
-      .finally(() => setIsLoading(false));
+      .finally(() => { setIsLoading(false); });
   }, []);
 
   const login = async (credentials) => {

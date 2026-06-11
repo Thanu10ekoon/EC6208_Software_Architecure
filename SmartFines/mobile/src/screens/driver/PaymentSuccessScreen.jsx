@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius, shadow, spacing } from '../../constants/theme';
+import { colors, fonts, radius, shadow, spacing } from '../../constants/theme';
 import { formatCurrency } from '../../utils/formatters';
 
 export default function PaymentSuccessScreen({ route, navigation }) {
@@ -59,13 +59,15 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 26,
-    fontWeight: '800',
+    fontFamily: fonts.extraBold,
     color: colors.text,
     marginBottom: spacing.sm,
     textAlign: 'center',
+    letterSpacing: -0.4,
   },
   subheading: {
     fontSize: 14,
+    fontFamily: fonts.regular,
     color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 22,
@@ -74,7 +76,7 @@ const styles = StyleSheet.create({
   },
   detailCard: {
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     padding: spacing.lg,
     width: '100%',
     marginBottom: spacing.xl,
@@ -87,16 +89,16 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.sm },
-  detailLabel: { fontSize: 14, color: colors.textMuted },
-  detailValue: { fontSize: 14, fontWeight: '600', color: colors.text },
-  detailAmount: { fontSize: 16, fontWeight: '700', color: colors.mint },
+  detailLabel: { fontSize: 13, fontFamily: fonts.regular, color: colors.textMuted },
+  detailValue: { fontSize: 13, fontFamily: fonts.semiBold, color: colors.text },
+  detailAmount: { fontSize: 16, fontFamily: fonts.bold, color: colors.mint },
   button: {
     backgroundColor: colors.surfaceStrong,
     borderRadius: radius.md,
-    paddingVertical: spacing.md + 2,
+    paddingVertical: 15,
     paddingHorizontal: spacing.xl,
     width: '100%',
     alignItems: 'center',
   },
-  buttonText: { fontSize: 16, fontWeight: '700', color: colors.white },
+  buttonText: { fontSize: 15, fontFamily: fonts.semiBold, color: colors.white, letterSpacing: 0.2 },
 });

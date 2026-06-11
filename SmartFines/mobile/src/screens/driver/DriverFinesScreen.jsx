@@ -9,52 +9,42 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius, shadow, spacing } from '../../constants/theme';
+import { colors, fonts, radius, shadow, spacing } from '../../constants/theme';
 import { listDriverFines } from '../../api/fines';
 import { extractApiError } from '../../utils/apiError';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import EmptyState from '../../components/EmptyState';
+import ErrorBanner from '../../components/ErrorBanner';
 
 const STATUS_STYLES = {
-  PAID: { bg: colors.mintSoft, text: colors.mint },
-  DISPUTED: { bg: colors.accentSoft, text: colors.accentStrong },
-  CANCELLED: { bg: colors.dangerSoft, text: colors.danger },
-  VOID: { bg: colors.dangerSoft, text: colors.danger },
-  ISSUED: { bg: colors.accentSoft, text: colors.accentStrong },
+  PAID: { bg: colors.mintSoft, text: colors.mint, bar: colors.mint },
+  ISSUED: { bg: colors.accentSoft, text: colors.accentStrong, bar: colors.accent },
+  DISPUTED: { bg: colors.accentSoft, text: colors.accentStrong, bar: colors.accent },
+  CANCELLED: { bg: colors.dangerSoft, text: colors.danger, bar: colors.danger },
+  VOID: { bg: colors.dangerSoft, text: colors.danger, bar: colors.danger },
 };
 
-function StatusBadge({ status }) {
-  const style = STATUS_STYLES[status] ?? STATUS_STYLES.ISSUED;
-  return (
-    <View style={[styles.badge, { backgroundColor: style.bg }]}>
-      <Text style={[styles.badgeText, { color: style.text }]}>{status}</Text>
-    </View>
-  );
-}
-
 function FineCard({ fine }) {
+  const s = STATUS_STYLES[fine.status] ?? STATUS_STYLES.ISSUED;
   return (
     <View style={styles.card}>
-      <View style={styles.cardTop}>
-        <Text style={styles.ref} numberOfLines={1}>{fine.fineReferenceNumber}</Text>
-        <StatusBadge status={fine.status} />
-      </View>
-      <Text style={styles.violation} numberOfLines={2}>{fine.violationDetails}</Text>
-      <View style={styles.cardBottom}>
-        <View style={styles.metaRow}>
-          <Ionicons name="calendar-outline" size={13} color={colors.textMuted} />
-          <Text style={styles.metaText}>{formatDate(fine.violationDate)}</Text>
+      <View style={[styles.statusBar, { backgroundColor: s.bar }]} />
+      <View style={styles.cardContent}>
+        <View style={styles.cardTop}>
+          <Text style={styles.ref} numberOfLines={1}>{fine.fineReferenceNumber}</Text>
+          <View style={[styles.badge, { backgroundColor: s.bg }]}>
+            <Text style={[styles.badgeText, { color: s.text }]}>{fine.status}</Text>
+          </View>
         </View>
-        <Text style={styles.amount}>{formatCurrency(fine.fineAmount)}</Text>
+        <Text style={styles.violation} numberOfLines={2}>{fine.violationDetails}</Text>
+        <View style={styles.cardBottom}>
+          <View style={styles.metaRow}>
+            <Ionicons name="calendar-outline" size={12} color={colors.textMuted} />
+            <Text style={styles.metaText}>{formatDate(fine.violationDate)}</Text>
+          </View>
+          <Text style={styles.amount}>{formatCurrency(fine.fineAmount)}</Text>
+        </View>
       </View>
-    </View>
-  );
-}
-
-function ListHeader() {
-  return (
-    <View style={styles.header}>
-      <Text style={styles.title}>My Fines</Text>
-      <Text style={styles.subtitle}>Review your violations and payment status.</Text>
     </View>
   );
 }
@@ -81,15 +71,11 @@ export default function DriverFinesScreen() {
 
   useEffect(() => { load(); }, []);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    load(true);
-  };
+  const onRefresh = () => { setRefreshing(true); load(true); };
 
   if (loading) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <ListHeader />
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.accent} />
         </View>
@@ -103,18 +89,21 @@ export default function DriverFinesScreen() {
         data={fines}
         keyExtractor={item => String(item.id)}
         renderItem={({ item }) => <FineCard fine={item} />}
-        ListHeaderComponent={<ListHeader />}
+        ListHeaderComponent={
+          <View style={styles.pageHeader}>
+            <Text style={styles.title}>My Fines</Text>
+            <Text style={styles.subtitle}>Review your violations and payment status.</Text>
+            <ErrorBanner message={error} style={styles.errorSpacing} />
+          </View>
+        }
         ListEmptyComponent={
-          error ? (
-            <View style={styles.emptyBox}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : (
-            <View style={styles.emptyBox}>
-              <Ionicons name="checkmark-circle-outline" size={48} color={colors.mint} />
-              <Text style={styles.emptyText}>No fines on record.</Text>
-            </View>
-          )
+          !error ? (
+            <EmptyState
+              icon="checkmark-circle-outline"
+              title="No fines on record"
+              subtitle="Keep up the good driving!"
+            />
+          ) : null
         }
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
@@ -133,17 +122,38 @@ export default function DriverFinesScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  list: { padding: spacing.lg, paddingBottom: spacing.xl, flexGrow: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { marginBottom: spacing.lg },
-  title: { fontSize: 22, fontWeight: '700', color: colors.text, marginBottom: 4 },
-  subtitle: { fontSize: 14, color: colors.textMuted },
+  list: { padding: spacing.lg, paddingBottom: spacing.xl, flexGrow: 1 },
+  pageHeader: { marginBottom: spacing.lg },
+  title: {
+    fontSize: 24,
+    fontFamily: fonts.bold,
+    color: colors.text,
+    letterSpacing: -0.4,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 13,
+    fontFamily: fonts.regular,
+    color: colors.textMuted,
+    marginBottom: spacing.sm,
+    lineHeight: 19,
+  },
+  errorSpacing: { marginTop: spacing.sm, marginBottom: 0 },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
+    overflow: 'hidden',
+    flexDirection: 'row',
     ...shadow,
+  },
+  statusBar: {
+    width: 3,
+  },
+  cardContent: {
+    flex: 1,
+    padding: spacing.md,
   },
   cardTop: {
     flexDirection: 'row',
@@ -153,16 +163,16 @@ const styles = StyleSheet.create({
   },
   ref: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.text,
-    fontVariant: ['tabular-nums'],
     flex: 1,
     marginRight: spacing.sm,
   },
   violation: {
-    fontSize: 14,
+    fontSize: 13,
+    fontFamily: fonts.regular,
     color: colors.textMuted,
-    lineHeight: 20,
+    lineHeight: 19,
     marginBottom: spacing.sm,
   },
   cardBottom: {
@@ -171,28 +181,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaText: { fontSize: 12, color: colors.textMuted },
-  amount: { fontSize: 15, fontWeight: '700', color: colors.text },
+  metaText: {
+    fontSize: 12,
+    fontFamily: fonts.regular,
+    color: colors.textMuted,
+  },
+  amount: {
+    fontSize: 15,
+    fontFamily: fonts.bold,
+    color: colors.text,
+  },
   badge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: radius.sm,
   },
-  badgeText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
-  emptyBox: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: spacing.xl * 2,
-    gap: spacing.md,
-  },
-  emptyText: { fontSize: 15, color: colors.textMuted },
-  errorText: {
-    fontSize: 13,
-    color: colors.danger,
-    textAlign: 'center',
-    backgroundColor: colors.dangerSoft,
-    padding: spacing.md,
-    borderRadius: radius.sm,
+  badgeText: {
+    fontSize: 10,
+    fontFamily: fonts.bold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

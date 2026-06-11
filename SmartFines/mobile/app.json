@@ -7,6 +7,10 @@
     "scheme": "smartfines",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#f7f3ed",
+      "resizeMode": "contain"
+    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.smartfines.app"

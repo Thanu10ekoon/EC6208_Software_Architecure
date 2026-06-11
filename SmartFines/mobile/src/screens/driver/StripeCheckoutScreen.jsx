@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
-import { colors, radius, shadow, spacing } from '../../constants/theme';
+import { colors, fonts, radius, shadow, spacing } from '../../constants/theme';
 import { createStripeCheckout, confirmStripeCheckout } from '../../api/payments';
 import { extractApiError } from '../../utils/apiError';
 import { formatCurrency } from '../../utils/formatters';
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   backBtn: { padding: spacing.sm },
-  navTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
+  navTitle: { fontSize: 16, fontFamily: fonts.bold, color: colors.text },
   webView: { flex: 1 },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
-  overlayText: { fontSize: 14, color: colors.textMuted },
+  overlayText: { fontSize: 14, fontFamily: fonts.regular, color: colors.textMuted },
   content: {
     flex: 1,
     padding: spacing.lg,
@@ -199,32 +199,40 @@ const styles = StyleSheet.create({
   iconWrap: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: 18,
     backgroundColor: colors.mintSoft,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.lg,
   },
   summaryLabel: {
-    fontSize: 12,
+    fontSize: 11,
+    fontFamily: fonts.semiBold,
     color: colors.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
   },
   summaryRef: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.text,
     marginTop: 2,
     marginBottom: spacing.md,
   },
   summaryAmountLabel: {
-    fontSize: 12,
+    fontSize: 11,
+    fontFamily: fonts.semiBold,
     color: colors.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
   },
-  summaryAmount: { fontSize: 32, fontWeight: '800', color: colors.text, marginTop: 4 },
+  summaryAmount: {
+    fontSize: 32,
+    fontFamily: fonts.extraBold,
+    color: colors.text,
+    marginTop: 4,
+    letterSpacing: -0.5,
+  },
   divider: {
     height: 1,
     backgroundColor: colors.border,
@@ -232,17 +240,19 @@ const styles = StyleSheet.create({
     marginVertical: spacing.md,
   },
   stripeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  stripeNote: { fontSize: 12, color: colors.textMuted },
+  stripeNote: { fontSize: 12, fontFamily: fonts.regular, color: colors.textMuted },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.sm,
     backgroundColor: colors.dangerSoft,
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.danger,
     padding: spacing.md,
     marginBottom: spacing.md,
   },
-  errorText: { flex: 1, fontSize: 13, color: colors.danger, lineHeight: 18 },
+  errorText: { flex: 1, fontSize: 13, fontFamily: fonts.regular, color: colors.danger, lineHeight: 18 },
   payButton: {
     backgroundColor: colors.accent,
     borderRadius: radius.md,
@@ -250,13 +260,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    paddingVertical: spacing.md + 2,
+    paddingVertical: 15,
     marginBottom: spacing.md,
   },
   payButtonDisabled: { opacity: 0.6 },
-  payButtonText: { fontSize: 16, fontWeight: '700', color: colors.white },
+  payButtonText: { fontSize: 16, fontFamily: fonts.semiBold, color: colors.white, letterSpacing: 0.2 },
   disclaimer: {
     fontSize: 12,
+    fontFamily: fonts.regular,
     color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 18,

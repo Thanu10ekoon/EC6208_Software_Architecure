@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "SmartFines",
+    "slug": "smartfines",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "smartfines",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.smartfines.app"
+    },
+    "android": {
+      "package": "com.smartfines.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#f7f3ed",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-web-browser",
+      "@react-native-community/datetimepicker"
+    ]
+  }
+}

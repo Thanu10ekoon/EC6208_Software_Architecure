@@ -105,7 +105,7 @@ const AdminPayments = () => {
         {error && <p className="form-error">{error}</p>}
         {!loading && payments.length === 0 && <p>No payments yet.</p>}
         {!loading && payments.length > 0 && (
-          <div className="table">
+          <div className="table table-scroll">
             <div className="table-row header cols-9 admin-payments-row">
               <span>Payment ID</span>
               <span>Fine Ref</span>
@@ -120,9 +120,11 @@ const AdminPayments = () => {
             {payments.map((payment) => (
               <div className="table-row cols-9 admin-payments-row" key={payment.id}>
                 <span>{payment.id}</span>
-                <span>{payment.fineReferenceNumber || payment.fineRef || <span className="muted">Reference not loaded</span>}</span>
-                <span>{driverLabel(payment)}</span>
-                <span>{formatCurrency(payment.amount)}</span>
+                <span className="fine-ref-cell">
+                  {payment.fineReferenceNumber || payment.fineRef || <span className="muted">Reference not loaded</span>}
+                </span>
+                <span className="driver-cell">{driverLabel(payment)}</span>
+                <span className="money-cell">{formatCurrency(payment.amount)}</span>
                 <span>{payment.paymentMethod}</span>
                 <span className={`status ${statusClass(payment.paymentStatus)}`}>
                   {payment.paymentStatus}

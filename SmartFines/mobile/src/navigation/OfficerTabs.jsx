@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import OfficerDashboardScreen from '../screens/officer/OfficerDashboardScreen';
 import IssueFineScreen from '../screens/officer/IssueFineScreen';
 import OfficerFinesScreen from '../screens/officer/OfficerFinesScreen';
-import OfficerNotificationsScreen from '../screens/officer/OfficerNotificationsScreen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
@@ -16,7 +15,6 @@ function tabIcon(route, focused, color) {
     Dashboard: focused ? 'home' : 'home-outline',
     IssueFine: focused ? 'add-circle' : 'add-circle-outline',
     MyFines: focused ? 'document-text' : 'document-text-outline',
-    Notifications: focused ? 'notifications' : 'notifications-outline',
   };
   return <Ionicons name={icons[route.name]} size={22} color={color} />;
 }
@@ -90,11 +88,6 @@ export default function OfficerTabs() {
         name="MyFines"
         component={OfficerFinesScreen}
         options={{ tabBarLabel: 'Issued Fines' }}
-      />
-      <Tab.Screen
-        name="Notifications"
-        component={OfficerNotificationsScreen}
-        options={{ tabBarLabel: 'Updates' }}
       />
     </Tab.Navigator>
   );

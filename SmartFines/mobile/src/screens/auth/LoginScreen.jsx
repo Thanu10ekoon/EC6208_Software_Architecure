@@ -69,7 +69,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   const openSignup = () => {
-    navigation.navigate(role === 'OFFICER' ? 'OfficerSignup' : 'DriverSignup');
+    navigation.navigate('DriverSignup');
   };
 
   return (
@@ -162,20 +162,18 @@ export default function LoginScreen({ navigation }) {
               <Text style={styles.submitBtnText}>{loading ? 'Signing in…' : 'Sign in'}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.footerLink}
-              onPress={openSignup}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.footerText}>
-                No account?{' '}
-                <Text style={styles.footerLinkText}>
-                  {role === 'OFFICER'
-                    ? 'Sign up as an officer'
-                    : 'Create a driver account'}
+            {role === 'DRIVER' && (
+              <TouchableOpacity
+                style={styles.footerLink}
+                onPress={openSignup}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.footerText}>
+                  No account?{' '}
+                  <Text style={styles.footerLinkText}>Create a driver account</Text>
                 </Text>
-              </Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -49,6 +49,13 @@ public class PaymentController {
     return paymentService.createStripeCheckout(user.getUserId(), request);
   }
 
+  @PostMapping("/{paymentId}/stripe/checkout")
+  @PreAuthorize("hasRole('DRIVER')")
+  public StripeCheckoutResponse resumeStripeCheckout(@AuthenticationPrincipal AuthUserDetails user,
+      @PathVariable Long paymentId) {
+    return paymentService.resumeStripeCheckout(user.getUserId(), paymentId);
+  }
+
   @PostMapping("/stripe/confirm")
   @PreAuthorize("hasRole('DRIVER')")
   public PaymentResponse confirmStripeCheckout(@AuthenticationPrincipal AuthUserDetails user,

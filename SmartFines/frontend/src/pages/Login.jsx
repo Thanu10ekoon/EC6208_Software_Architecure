@@ -82,7 +82,10 @@ const Login = () => {
         </form>
 
         <p className="auth-footer">
-          Driver account? <a href="/signup">Create one</a>
+          Driver account?{' '}
+          <button type="button" className="link-button" onClick={() => navigate('/signup')}>
+            Create one
+          </button>
         </p>
       </div>
     </div>

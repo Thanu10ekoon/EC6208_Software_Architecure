@@ -88,9 +88,14 @@ const DriverSignup = () => {
 
           {error && <p className="form-error">{error}</p>}
 
-          <button type="submit" disabled={loading}>
-            {loading ? 'Submitting...' : 'Create account'}
-          </button>
+          <div className="form-actions">
+            <button type="button" className="auth-back-button" onClick={() => navigate('/login')}>
+              Back to sign in
+            </button>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Submitting...' : 'Create account'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

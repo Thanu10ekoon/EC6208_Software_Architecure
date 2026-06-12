@@ -203,8 +203,16 @@
   grid-template-columns: 0.8fr 0.8fr 0.8fr 1fr 1.1fr 0.9fr 1.5fr 1fr;
 }
 
+.table-row.cols-8.driver-payments-row {
+  grid-template-columns: 0.7fr 1.35fr 1fr 0.95fr 0.85fr 1.45fr 0.95fr 0.9fr;
+}
+
 .table-row.cols-9 {
   grid-template-columns: 0.75fr 0.75fr 0.75fr 0.95fr 1fr 0.85fr 1.35fr 1fr 0.9fr;
+}
+
+.table-row.cols-9.admin-payments-row {
+  grid-template-columns: 0.7fr 0.7fr 1.6fr 1fr 1fr 0.85fr 1.35fr 1.2fr 0.95fr;
 }
 
 .table-row.cols-10 {
@@ -356,6 +364,16 @@
   margin-bottom: 24px;
 }
 
+.auth-back-button {
+  background: transparent;
+  border: 0;
+  color: var(--accent-strong);
+  padding: 0;
+  width: fit-content;
+  cursor: pointer;
+  font-weight: 600;
+}
+
 .badge {
   font-size: 12px;
   text-transform: uppercase;
@@ -379,6 +397,8 @@
 .form-actions {
   grid-column: 1 / -1;
   display: flex;
+  align-items: center;
+  gap: 16px;
   justify-content: flex-end;
 }
 

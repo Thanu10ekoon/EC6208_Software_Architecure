@@ -13,6 +13,8 @@ public class FineResponse {
   private Long id;
   private String fineReferenceNumber;
   private Long driverUserId;
+  private String driverName;
+  private String driverNic;
   private Long officerUserId;
   private Long regionId;
   private String vehicleNumber;

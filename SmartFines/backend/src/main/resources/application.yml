@@ -8,9 +8,13 @@ spring:
       - optional:file:backend/.env[.properties]
       - optional:file:../.env[.properties]
   datasource:
-    url: ${DATABASE_HOSTNAME}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
+    url: ${DATABASE_URL:${DATABASE_HOSTNAME:jdbc:mysql://localhost:3306/smartfines}}
+    username: ${DATABASE_USERNAME:root}
+    password: ${DATABASE_PASSWORD:${DB_PASSWORD:}}
+    hikari:
+      connection-timeout: 5000
+      validation-timeout: 3000
+      maximum-pool-size: 5
   jpa:
     hibernate:
       ddl-auto: update

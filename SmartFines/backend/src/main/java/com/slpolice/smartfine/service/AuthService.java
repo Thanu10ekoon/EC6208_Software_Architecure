@@ -4,9 +4,7 @@ import com.slpolice.smartfine.dto.AuthLoginRequest;
 import com.slpolice.smartfine.dto.AuthLoginResponse;
 import com.slpolice.smartfine.dto.DriverSignupRequest;
 import com.slpolice.smartfine.dto.LoginType;
-import com.slpolice.smartfine.dto.OfficerSignupRequest;
 import com.slpolice.smartfine.entity.LicenseDetails;
-import com.slpolice.smartfine.entity.OfficerProfile;
 import com.slpolice.smartfine.entity.Role;
 import com.slpolice.smartfine.entity.User;
 import com.slpolice.smartfine.entity.UserRole;
@@ -117,64 +115,6 @@ public class AuthService {
     List<String> roles = List.of("driver");
     String token = tokenProvider.generateAccessToken(savedUser.getId(), roles);
     return new AuthLoginResponse(token, "Bearer", savedUser.getId(), savedUser.getFullName(), roles, savedUser.getStatus());
-  }
-
-  @Transactional
-  public AuthLoginResponse officerSignup(OfficerSignupRequest request) {
-    if (userRepository.existsByEmail(request.getEmail())) {
-      throw new ApiException(HttpStatus.CONFLICT, "Email is already registered");
-    }
-    if (userRepository.existsByPhone(request.getPhone())) {
-      throw new ApiException(HttpStatus.CONFLICT, "Phone is already registered");
-    }
-    if (request.getNic() != null && !request.getNic().isBlank()
-        && userRepository.existsByNic(request.getNic())) {
-      throw new ApiException(HttpStatus.CONFLICT, "NIC is already registered");
-    }
-    if (officerProfileRepository.existsByBadgeNumber(request.getBadgeNumber())) {
-      throw new ApiException(HttpStatus.CONFLICT, "Badge number is already registered");
-    }
-    if (officerProfileRepository.existsByOfficerCode(request.getOfficerCode())) {
-      throw new ApiException(HttpStatus.CONFLICT, "Officer code is already registered");
-    }
-
-    User user = new User();
-    user.setFullName(request.getFullName());
-    user.setEmail(request.getEmail());
-    user.setPhone(request.getPhone());
-    user.setNic(request.getNic() == null || request.getNic().isBlank() ? null : request.getNic());
-    user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-
-    User savedUser = userRepository.save(user);
-
-    OfficerProfile profile = new OfficerProfile();
-    profile.setUser(savedUser);
-    profile.setOfficerCode(request.getOfficerCode());
-    profile.setBadgeNumber(request.getBadgeNumber());
-    profile.setStationName(request.getStationName());
-    profile.setRegion(regionRepository.findById(request.getRegionId())
-        .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Region not found")));
-    officerProfileRepository.save(profile);
-
-    Role officerRole = roleRepository.findByName("traffic_officer")
-        .orElseThrow(() -> new ApiException(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "Traffic officer role missing"));
-
-    UserRole userRole = new UserRole();
-    userRole.setUser(savedUser);
-    userRole.setRole(officerRole);
-    userRoleRepository.save(userRole);
-
-    List<String> roles = List.of("traffic_officer");
-    String token = tokenProvider.generateAccessToken(savedUser.getId(), roles);
-    return new AuthLoginResponse(
-        token,
-        "Bearer",
-        savedUser.getId(),
-        savedUser.getFullName(),
-        roles,
-        savedUser.getStatus());
   }
 
   private User resolveUserForLogin(LoginType loginType, String identifier) {

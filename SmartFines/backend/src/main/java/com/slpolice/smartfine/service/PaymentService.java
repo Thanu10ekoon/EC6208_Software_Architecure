@@ -261,13 +261,65 @@ public class PaymentService {
         Payment saved = paymentRepository.save(payment);
 
         Map<String, Object> session = createStripeSession(saved);
-        String sessionId = String.valueOf(session.get("id"));
-        String checkoutUrl = String.valueOf(session.get("url"));
+        String sessionId = requireStripeValue(session, "id", "Stripe did not return a session id");
+        String checkoutUrl = requireStripeValue(session, "url", "Stripe did not return a checkout URL");
         saved.setTransactionReference(sessionId);
         paymentRepository.save(saved);
 
+        return stripeCheckoutResponse(saved, sessionId, checkoutUrl);
+    }
+
+    @Transactional
+    public StripeCheckoutResponse resumeStripeCheckout(Long driverUserId, Long paymentId) {
+        if (stripeSecretKey == null || stripeSecretKey.isBlank()) {
+            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Stripe secret key is not configured");
+        }
+
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Payment not found"));
+
+        if (!payment.getDriver().getId().equals(driverUserId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Not allowed to continue this payment");
+        }
+
+        if (payment.getPaymentMethod() != PaymentMethod.ONLINE) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Only online payments can be continued");
+        }
+
+        if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
+            throw new ApiException(HttpStatus.CONFLICT, "Only pending payments can be continued");
+        }
+
+        if (payment.getFine().getStatus() == FineStatus.PAID) {
+            throw new ApiException(HttpStatus.CONFLICT, "Fine already paid");
+        }
+
+        String existingSessionId = payment.getTransactionReference();
+        if (existingSessionId != null && !existingSessionId.isBlank()) {
+            try {
+                Map<String, Object> existingSession = retrieveStripeSession(existingSessionId);
+                String checkoutUrl = stringValue(existingSession.get("url"));
+                String sessionStatus = stringValue(existingSession.get("status"));
+                if (!checkoutUrl.isBlank() && !"expired".equalsIgnoreCase(sessionStatus)) {
+                    return stripeCheckoutResponse(payment, existingSessionId, checkoutUrl);
+                }
+            } catch (ApiException ignored) {
+                // If the saved Stripe session cannot be retrieved, create a fresh session for this pending payment.
+            }
+        }
+
+        Map<String, Object> session = createStripeSession(payment);
+        String sessionId = requireStripeValue(session, "id", "Stripe did not return a session id");
+        String checkoutUrl = requireStripeValue(session, "url", "Stripe did not return a checkout URL");
+        payment.setTransactionReference(sessionId);
+        Payment saved = paymentRepository.save(payment);
+
+        return stripeCheckoutResponse(saved, sessionId, checkoutUrl);
+    }
+
+    private StripeCheckoutResponse stripeCheckoutResponse(Payment payment, String sessionId, String checkoutUrl) {
         return StripeCheckoutResponse.builder()
-                .paymentId(saved.getId())
+                .paymentId(payment.getId())
                 .sessionId(sessionId)
                 .checkoutUrl(checkoutUrl)
                 .build();
@@ -431,6 +483,18 @@ public class PaymentService {
         return body;
     }
 
+    private String stringValue(Object value) {
+        return value == null ? "" : String.valueOf(value);
+    }
+
+    private String requireStripeValue(Map<String, Object> session, String key, String message) {
+        String value = stringValue(session.get(key));
+        if (value.isBlank() || "null".equalsIgnoreCase(value)) {
+            throw new ApiException(HttpStatus.BAD_GATEWAY, message);
+        }
+        return value;
+    }
+
     private void markFinePaid(TrafficFine fine, User actor) {
         FineStatus previousStatus = fine.getStatus();
         fine.setStatus(FineStatus.PAID);
@@ -474,6 +538,8 @@ public class PaymentService {
         PaymentResponse.PaymentResponseBuilder builder = PaymentResponse.builder()
                 .id(payment.getId())
                 .fineId(payment.getFine().getId())
+                .fineReferenceNumber(payment.getFine().getFineReferenceNumber())
+                .fineRef(payment.getFine().getFineReferenceNumber())
                 .fineStatus(payment.getFine().getStatus())
                 .driverUserId(payment.getDriver().getId())
                 .driverName(payment.getDriver().getFullName())

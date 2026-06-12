@@ -14,6 +14,8 @@ import lombok.Getter;
 public class PaymentResponse {
   private Long id;
   private Long fineId;
+  private String fineReferenceNumber;
+  private String fineRef;
   private FineStatus fineStatus;
   private Long driverUserId;
   private String driverName;

@@ -106,11 +106,10 @@ const AdminPayments = () => {
         {!loading && payments.length === 0 && <p>No payments yet.</p>}
         {!loading && payments.length > 0 && (
           <div className="table">
-            <div className="table-row header cols-10">
+            <div className="table-row header cols-9 admin-payments-row">
               <span>Payment ID</span>
-              <span>Fine ID</span>
+              <span>Fine Ref</span>
               <span>Driver</span>
-              <span>Payment Ref</span>
               <span>Amount</span>
               <span>Method</span>
               <span>Status</span>
@@ -119,11 +118,10 @@ const AdminPayments = () => {
               <span>Created</span>
             </div>
             {payments.map((payment) => (
-              <div className="table-row cols-10" key={payment.id}>
+              <div className="table-row cols-9 admin-payments-row" key={payment.id}>
                 <span>{payment.id}</span>
-                <span>{payment.fineId}</span>
+                <span>{payment.fineReferenceNumber || payment.fineRef || <span className="muted">Reference not loaded</span>}</span>
                 <span>{driverLabel(payment)}</span>
-                <span>{payment.transactionReference || payment.receiptNumber || <span className="muted">Not provided</span>}</span>
                 <span>{formatCurrency(payment.amount)}</span>
                 <span>{payment.paymentMethod}</span>
                 <span className={`status ${statusClass(payment.paymentStatus)}`}>

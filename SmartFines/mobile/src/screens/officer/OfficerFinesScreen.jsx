@@ -28,6 +28,7 @@ const STATUS_STYLES = {
 function FineCard({ fine }) {
   const status = String(fine?.status ?? 'ISSUED').toUpperCase();
   const statusStyle = STATUS_STYLES[status] ?? STATUS_STYLES.ISSUED;
+  const driverLabel = fine.driverName || fine.driverNic || `Driver #${fine.driverUserId}`;
 
   return (
     <View style={styles.card}>
@@ -47,7 +48,7 @@ function FineCard({ fine }) {
         <View style={styles.identityRow}>
           <View style={styles.identityItem}>
             <Ionicons name="person-outline" size={13} color={colors.textMuted} />
-            <Text style={styles.identityText}>Driver #{fine.driverUserId}</Text>
+            <Text style={styles.identityText}>{driverLabel}</Text>
           </View>
           <View style={styles.identityDivider} />
           <View style={styles.identityItem}>

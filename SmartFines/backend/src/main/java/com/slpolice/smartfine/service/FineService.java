@@ -126,6 +126,8 @@ public class FineService {
         .id(fine.getId())
         .fineReferenceNumber(fine.getFineReferenceNumber())
         .driverUserId(fine.getDriver().getId())
+        .driverName(fine.getDriver().getFullName())
+        .driverNic(fine.getDriver().getNic())
         .officerUserId(fine.getOfficer().getId())
         .regionId(fine.getRegion().getId())
         .vehicleNumber(fine.getVehicleNumber())

@@ -2,7 +2,14 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import SectionHeader from '../components/SectionHeader'
 import { listDriverFines } from '../api/fines'
-import { confirmStripeCheckout, createPayment, createStripeCheckout, listPayments, uploadReceipt } from '../api/payments'
+import {
+  confirmStripeCheckout,
+  createPayment,
+  createStripeCheckout,
+  listPayments,
+  resumeStripeCheckout,
+  uploadReceipt,
+} from '../api/payments'
 import { formatCurrency, formatDate } from '../utils/formatters'
 
 const initialForm = {
@@ -21,6 +28,7 @@ const DriverPayments = () => {
   const [fileInputKey, setFileInputKey] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [continuingId, setContinuingId] = useState(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
@@ -134,6 +142,20 @@ const DriverPayments = () => {
     return err?.message || 'Failed to start Stripe Checkout'
   }
 
+  const handleContinueOnlinePayment = async (paymentId) => {
+    setContinuingId(paymentId)
+    setError('')
+    setNotice('')
+    try {
+      const checkout = await resumeStripeCheckout(paymentId)
+      window.location.assign(checkout.checkoutUrl)
+    } catch (err) {
+      setError(stripeCheckoutError(err))
+    } finally {
+      setContinuingId(null)
+    }
+  }
+
   const handleFileChange = (paymentId, file) => {
     setFileMap((prev) => ({ ...prev, [paymentId]: file }))
   }
@@ -234,7 +256,7 @@ const DriverPayments = () => {
         {!loading && payments.length === 0 && <p>No payments yet.</p>}
         {!loading && payments.length > 0 && (
           <div className="table">
-            <div className="table-row header cols-7">
+            <div className="table-row header cols-8 driver-payments-row">
               <span>Payment ID</span>
               <span>Fine</span>
               <span>Amount</span>
@@ -242,11 +264,13 @@ const DriverPayments = () => {
               <span>Status</span>
               <span>Receipt</span>
               <span>Created</span>
+              <span>Action</span>
             </div>
             {payments.map((payment) => {
               const fine = fineById.get(payment.fineId)
+              const canContinueOnlinePayment = payment.paymentMethod === 'ONLINE' && payment.paymentStatus === 'PENDING'
               return (
-                <div className="table-row cols-7" key={payment.id}>
+                <div className="table-row cols-8 driver-payments-row" key={payment.id}>
                   <span>{payment.id}</span>
                   <span>{fine?.fineReferenceNumber || payment.fineId}</span>
                   <span>{formatCurrency(payment.amount)}</span>
@@ -279,6 +303,20 @@ const DriverPayments = () => {
                     )}
                   </span>
                   <span>{formatDate(payment.createdAt)}</span>
+                  <span>
+                    {canContinueOnlinePayment ? (
+                      <button
+                        type="button"
+                        className="compact-button"
+                        onClick={() => handleContinueOnlinePayment(payment.id)}
+                        disabled={continuingId === payment.id || saving}
+                      >
+                        {continuingId === payment.id ? 'Opening...' : 'Continue'}
+                      </button>
+                    ) : (
+                      <span className="muted">-</span>
+                    )}
+                  </span>
                 </div>
               )
             })}

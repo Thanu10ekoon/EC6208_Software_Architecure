@@ -15,7 +15,11 @@ const DriverFines = () => {
       const data = await listDriverFines()
       setFines(data)
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to load fines')
+      if (err.code === 'ECONNABORTED') {
+        setError('The server is taking too long to respond. Check the backend database connection.')
+      } else {
+        setError(err?.response?.data?.message || 'Failed to load fines')
+      }
     } finally {
       setLoading(false)
     }

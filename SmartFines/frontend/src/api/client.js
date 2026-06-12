@@ -5,6 +5,7 @@ const TOKEN_KEY = 'smartfines.token'
 
 const client = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 10000,
 })
 
 client.interceptors.request.use((config) => {

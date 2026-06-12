@@ -126,7 +126,7 @@ const OfficerFines = () => {
             {fines.map((fine) => (
               <div className="table-row cols-5" key={fine.id}>
                 <span>{fine.fineReferenceNumber}</span>
-                <span>{fine.driverUserId}</span>
+                <span>{fine.driverName || fine.driverNic || fine.driverUserId}</span>
                 <span>{formatDate(fine.violationDate)}</span>
                 <span>{formatCurrency(fine.fineAmount)}</span>
                 <span className={`status ${fine.status === 'PAID' ? 'success' : 'pending'}`}>

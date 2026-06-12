@@ -19,9 +19,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "fine_status_history")
-@Getter
-@Setter
-@NoArgsConstructor
 public class FineStatusHistory {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,4 +46,60 @@ public class FineStatusHistory {
 
   @Column(length = 255)
   private String comment;
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public TrafficFine getFine() {
+    return fine;
+  }
+
+  public void setFine(TrafficFine fine) {
+    this.fine = fine;
+  }
+
+  public FineStatus getPreviousStatus() {
+    return previousStatus;
+  }
+
+  public void setPreviousStatus(FineStatus previousStatus) {
+    this.previousStatus = previousStatus;
+  }
+
+  public FineStatus getNewStatus() {
+    return newStatus;
+  }
+
+  public void setNewStatus(FineStatus newStatus) {
+    this.newStatus = newStatus;
+  }
+
+  public User getChangedByUser() {
+    return changedByUser;
+  }
+
+  public void setChangedByUser(User changedByUser) {
+    this.changedByUser = changedByUser;
+  }
+
+  public Instant getChangedAt() {
+    return changedAt;
+  }
+
+  public void setChangedAt(Instant changedAt) {
+    this.changedAt = changedAt;
+  }
+
+  public String getComment() {
+    return comment;
+  }
+
+  public void setComment(String comment) {
+    this.comment = comment;
+  }
 }

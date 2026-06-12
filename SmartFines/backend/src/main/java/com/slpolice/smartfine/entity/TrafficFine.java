@@ -22,9 +22,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "traffic_fines")
-@Getter
-@Setter
-@NoArgsConstructor
 public class TrafficFine {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -87,4 +84,132 @@ public class TrafficFine {
   @UpdateTimestamp
   @Column(name = "updated_at")
   private Instant updatedAt;
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public String getFineReferenceNumber() {
+    return fineReferenceNumber;
+  }
+
+  public void setFineReferenceNumber(String fineReferenceNumber) {
+    this.fineReferenceNumber = fineReferenceNumber;
+  }
+
+  public User getDriver() {
+    return driver;
+  }
+
+  public void setDriver(User driver) {
+    this.driver = driver;
+  }
+
+  public User getOfficer() {
+    return officer;
+  }
+
+  public void setOfficer(User officer) {
+    this.officer = officer;
+  }
+
+  public Region getRegion() {
+    return region;
+  }
+
+  public void setRegion(Region region) {
+    this.region = region;
+  }
+
+  public String getVehicleNumber() {
+    return vehicleNumber;
+  }
+
+  public void setVehicleNumber(String vehicleNumber) {
+    this.vehicleNumber = vehicleNumber;
+  }
+
+  public String getDriverLicenseNumberSnapshot() {
+    return driverLicenseNumberSnapshot;
+  }
+
+  public void setDriverLicenseNumberSnapshot(String driverLicenseNumberSnapshot) {
+    this.driverLicenseNumberSnapshot = driverLicenseNumberSnapshot;
+  }
+
+  public LocalDate getViolationDate() {
+    return violationDate;
+  }
+
+  public void setViolationDate(LocalDate violationDate) {
+    this.violationDate = violationDate;
+  }
+
+  public String getViolationDetails() {
+    return violationDetails;
+  }
+
+  public void setViolationDetails(String violationDetails) {
+    this.violationDetails = violationDetails;
+  }
+
+  public String getViolationPlace() {
+    return violationPlace;
+  }
+
+  public void setViolationPlace(String violationPlace) {
+    this.violationPlace = violationPlace;
+  }
+
+  public BigDecimal getFineAmount() {
+    return fineAmount;
+  }
+
+  public void setFineAmount(BigDecimal fineAmount) {
+    this.fineAmount = fineAmount;
+  }
+
+  public String getLicenseCollectionLocation() {
+    return licenseCollectionLocation;
+  }
+
+  public void setLicenseCollectionLocation(String licenseCollectionLocation) {
+    this.licenseCollectionLocation = licenseCollectionLocation;
+  }
+
+  public FineStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(FineStatus status) {
+    this.status = status;
+  }
+
+  public Instant getIssuedAt() {
+    return issuedAt;
+  }
+
+  public void setIssuedAt(Instant issuedAt) {
+    this.issuedAt = issuedAt;
+  }
+
+  public Instant getPaidAt() {
+    return paidAt;
+  }
+
+  public void setPaidAt(Instant paidAt) {
+    this.paidAt = paidAt;
+  }
+
+  public Instant getDueAt() {
+    return dueAt;
+  }
+
+  public void setDueAt(Instant dueAt) {
+    this.dueAt = dueAt;
+  }
 }

@@ -9,9 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Embeddable
-@Getter
-@Setter
-@NoArgsConstructor
 @EqualsAndHashCode
 public class LicenseDetailCategoryId implements Serializable {
   @Column(name = "license_detail_user_id")
@@ -19,4 +16,20 @@ public class LicenseDetailCategoryId implements Serializable {
 
   @Column(name = "vehicle_category_id")
   private Long vehicleCategoryId;
+
+  public Long getLicenseDetailUserId() {
+    return licenseDetailUserId;
+  }
+
+  public void setLicenseDetailUserId(Long licenseDetailUserId) {
+    this.licenseDetailUserId = licenseDetailUserId;
+  }
+
+  public Long getVehicleCategoryId() {
+    return vehicleCategoryId;
+  }
+
+  public void setVehicleCategoryId(Long vehicleCategoryId) {
+    this.vehicleCategoryId = vehicleCategoryId;
+  }
 }

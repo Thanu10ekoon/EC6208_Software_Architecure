@@ -65,4 +65,26 @@ public class AuthUserDetails implements UserDetails {
     }
     return String.valueOf(user.getId());
   }
+
+  public Long getUserId() {
+    return userId;
+  }
+
+  @Override
+  public String getPassword() {
+    return password;
+  }
+
+  @Override
+  public String getUsername() {
+    return username;
+  }
+
+  public UserStatus getStatus() {
+    return status;
+  }
+
+  public List<String> getRoles() {
+    return roles;
+  }
 }

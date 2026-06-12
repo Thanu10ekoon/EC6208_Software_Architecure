@@ -16,9 +16,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "user_roles")
-@Getter
-@Setter
-@NoArgsConstructor
 public class UserRole {
   @EmbeddedId
   private UserRoleId id = new UserRoleId();
@@ -40,4 +37,44 @@ public class UserRole {
   @CreationTimestamp
   @Column(name = "assigned_at", nullable = false, updatable = false)
   private Instant assignedAt;
+
+  public UserRoleId getId() {
+    return id;
+  }
+
+  public void setId(UserRoleId id) {
+    this.id = id;
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  public void setUser(User user) {
+    this.user = user;
+  }
+
+  public Role getRole() {
+    return role;
+  }
+
+  public void setRole(Role role) {
+    this.role = role;
+  }
+
+  public User getAssignedByUser() {
+    return assignedByUser;
+  }
+
+  public void setAssignedByUser(User assignedByUser) {
+    this.assignedByUser = assignedByUser;
+  }
+
+  public Instant getAssignedAt() {
+    return assignedAt;
+  }
+
+  public void setAssignedAt(Instant assignedAt) {
+    this.assignedAt = assignedAt;
+  }
 }

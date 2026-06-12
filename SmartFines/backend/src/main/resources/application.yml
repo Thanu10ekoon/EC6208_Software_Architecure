@@ -8,9 +8,9 @@ spring:
       - optional:file:backend/.env[.properties]
       - optional:file:../.env[.properties]
   datasource:
-    url: jdbc:mysql://104.248.73.1:3306/smartfines?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: admin
-    password: "b0e5fffb56bfc845e77bf53d69f567dd313b78b92c36f144"
+    url: ${DATABASE_HOSTNAME}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -18,21 +18,10 @@ spring:
       hibernate:
         format_sql: true
     open-in-view: false
-  mail:
-    host: smtp.example.com
-    port: 587
-    username: thanu10
-    password: password01g
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
 
 app:
   jwt:
-    secret: hello-darkness-my-old-friend-by-robert-downney-jr
+    secret: ${JWT_SECRET_KEY}
     access-token-expiration-minutes: 60
   cors:
     allowed-origins:
@@ -40,12 +29,18 @@ app:
   receipts:
     storage-path: ./storage/receipts
   stripe:
-    secret-key: ${STRIPE_SECRET_KEY:}
+    secret-key: ${STRIPE_SECRET_KEY}
     currency: lkr
-    success-url: ${STRIPE_SUCCESS_URL:http://localhost:5173/driver/payments?session_id=CHECKOUT_SESSION_ID}
-    cancel-url: ${STRIPE_CANCEL_URL:http://localhost:5173/driver/payments}
+    success-url: ${STRIPE_SUCCESS_URL}
+    cancel-url: ${STRIPE_CANCEL_URL}
 
 logging:
   level:
     org.hibernate.SQL: warn
     org.hibernate.orm.jdbc.bind: warn
+
+notify:
+  user-id: ${NOTIFY_USER_ID}
+  api-key: ${NOTIFY_API_KEY}
+  sender-id: ${NOTIFY_SENDER_ID}
+  base-url: ${NOTIFY_BASE_URL}

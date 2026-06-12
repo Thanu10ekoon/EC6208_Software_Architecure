@@ -19,9 +19,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "notification_deliveries")
-@Getter
-@Setter
-@NoArgsConstructor
 public class NotificationDelivery {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,4 +48,68 @@ public class NotificationDelivery {
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public Notification getNotification() {
+    return notification;
+  }
+
+  public void setNotification(Notification notification) {
+    this.notification = notification;
+  }
+
+  public NotificationChannel getChannel() {
+    return channel;
+  }
+
+  public void setChannel(NotificationChannel channel) {
+    this.channel = channel;
+  }
+
+  public NotificationDeliveryStatus getDeliveryStatus() {
+    return deliveryStatus;
+  }
+
+  public void setDeliveryStatus(NotificationDeliveryStatus deliveryStatus) {
+    this.deliveryStatus = deliveryStatus;
+  }
+
+  public String getDeliveredTo() {
+    return deliveredTo;
+  }
+
+  public void setDeliveredTo(String deliveredTo) {
+    this.deliveredTo = deliveredTo;
+  }
+
+  public Instant getSentAt() {
+    return sentAt;
+  }
+
+  public void setSentAt(Instant sentAt) {
+    this.sentAt = sentAt;
+  }
+
+  public String getErrorMessage() {
+    return errorMessage;
+  }
+
+  public void setErrorMessage(String errorMessage) {
+    this.errorMessage = errorMessage;
+  }
+
+  public Instant getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(Instant createdAt) {
+    this.createdAt = createdAt;
+  }
 }

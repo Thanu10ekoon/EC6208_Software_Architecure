@@ -17,9 +17,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "driver_star_history")
-@Getter
-@Setter
-@NoArgsConstructor
 public class DriverStarHistory {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,4 +46,68 @@ public class DriverStarHistory {
   @CreationTimestamp
   @Column(name = "changed_at", nullable = false, updatable = false)
   private Instant changedAt;
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public User getDriver() {
+    return driver;
+  }
+
+  public void setDriver(User driver) {
+    this.driver = driver;
+  }
+
+  public TrafficFine getFine() {
+    return fine;
+  }
+
+  public void setFine(TrafficFine fine) {
+    this.fine = fine;
+  }
+
+  public int getStarsBefore() {
+    return starsBefore;
+  }
+
+  public void setStarsBefore(int starsBefore) {
+    this.starsBefore = starsBefore;
+  }
+
+  public int getStarsAfter() {
+    return starsAfter;
+  }
+
+  public void setStarsAfter(int starsAfter) {
+    this.starsAfter = starsAfter;
+  }
+
+  public String getChangeReason() {
+    return changeReason;
+  }
+
+  public void setChangeReason(String changeReason) {
+    this.changeReason = changeReason;
+  }
+
+  public User getChangedByUser() {
+    return changedByUser;
+  }
+
+  public void setChangedByUser(User changedByUser) {
+    this.changedByUser = changedByUser;
+  }
+
+  public Instant getChangedAt() {
+    return changedAt;
+  }
+
+  public void setChangedAt(Instant changedAt) {
+    this.changedAt = changedAt;
+  }
 }

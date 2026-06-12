@@ -2,3 +2,7 @@
 .idea/
 SmartFines/backend/src/main/resources/application.yml
 SmartFines/backend/storage/
+
+# Build
+SmartFines/backend/target/
+

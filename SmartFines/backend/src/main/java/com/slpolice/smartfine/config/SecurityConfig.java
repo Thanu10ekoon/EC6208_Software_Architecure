@@ -1,5 +1,7 @@
-package com.slpolice.smartfine.security;
+package com.slpolice.smartfine.config;
 
+import com.slpolice.smartfine.security.JwtAuthenticationFilter;
+import com.slpolice.smartfine.security.JwtProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -37,7 +37,7 @@ export default function LoginScreen({ navigation }) {
   const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { control, handleSubmit, formState: { errors } } = useForm({
+  const { control, handleSubmit, setValue, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
     defaultValues: { identifier: '', password: '' },
   });
@@ -60,6 +60,16 @@ export default function LoginScreen({ navigation }) {
       setLoading(false);
       setApiError(extractApiError(err));
     }
+  };
+
+  const selectRole = (nextRole) => {
+    setRole(nextRole);
+    setValue('identifier', '');
+    setApiError('');
+  };
+
+  const openSignup = () => {
+    navigation.navigate(role === 'OFFICER' ? 'OfficerSignup' : 'DriverSignup');
   };
 
   return (
@@ -90,7 +100,7 @@ export default function LoginScreen({ navigation }) {
                 <Pressable
                   key={r.key}
                   style={[styles.roleBtn, role === r.key && styles.roleBtnActive]}
-                  onPress={() => setRole(r.key)}
+                  onPress={() => selectRole(r.key)}
                 >
                   <Ionicons
                     name={r.icon}
@@ -154,12 +164,16 @@ export default function LoginScreen({ navigation }) {
 
             <TouchableOpacity
               style={styles.footerLink}
-              onPress={() => navigation.navigate('DriverSignup')}
+              onPress={openSignup}
               activeOpacity={0.7}
             >
               <Text style={styles.footerText}>
                 No account?{' '}
-                <Text style={styles.footerLinkText}>Create a driver account</Text>
+                <Text style={styles.footerLinkText}>
+                  {role === 'OFFICER'
+                    ? 'Sign up as an officer'
+                    : 'Create a driver account'}
+                </Text>
               </Text>
             </TouchableOpacity>
           </View>

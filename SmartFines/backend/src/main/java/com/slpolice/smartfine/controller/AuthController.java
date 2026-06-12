@@ -3,6 +3,7 @@ package com.slpolice.smartfine.controller;
 import com.slpolice.smartfine.dto.AuthLoginRequest;
 import com.slpolice.smartfine.dto.AuthLoginResponse;
 import com.slpolice.smartfine.dto.DriverSignupRequest;
+import com.slpolice.smartfine.dto.OfficerSignupRequest;
 import com.slpolice.smartfine.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,5 +28,10 @@ public class AuthController {
   @PostMapping("/driver-signup")
   public AuthLoginResponse driverSignup(@Valid @RequestBody DriverSignupRequest request) {
     return authService.driverSignup(request);
+  }
+
+  @PostMapping("/officer-signup")
+  public AuthLoginResponse officerSignup(@Valid @RequestBody OfficerSignupRequest request) {
+    return authService.officerSignup(request);
   }
 }

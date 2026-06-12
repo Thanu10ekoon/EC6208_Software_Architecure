@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,5 +24,11 @@ public class NotificationController {
   @PreAuthorize("isAuthenticated()")
   public List<NotificationResponse> listNotifications(@AuthenticationPrincipal AuthUserDetails user) {
     return notificationQueryService.listNotifications(user.getUserId());
+  }
+
+  @PatchMapping("/read-all")
+  @PreAuthorize("isAuthenticated()")
+  public void markAllRead(@AuthenticationPrincipal AuthUserDetails user) {
+    notificationQueryService.markAllRead(user.getUserId());
   }
 }
